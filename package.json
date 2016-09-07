@@ -1,0 +1,25 @@
+{
+  "name": "pushgo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/app-lab/pushGo.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/app-lab/pushGo/issues"
+  },
+  "homepage": "https://github.com/app-lab/pushGo#readme",
+  "dependencies": {
+    "express": "^4.14.0",
+    "mysql": "^2.11.1",
+    "redis": "^2.6.2",
+    "socket.io": "^1.4.8"
+  }
+}
