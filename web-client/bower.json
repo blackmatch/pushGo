@@ -1,0 +1,27 @@
+{
+  "name": "web-client",
+  "homepage": "https://github.com/app-lab/pushGo",
+  "authors": [
+    "blackmatch <coder.blackmatch@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^3.1.0",
+    "socket.io": "^1.4.8",
+    "socket.io-client": "^1.4.8",
+    "angular": "^1.5.8",
+    "angular-ui": "^0.4.0",
+    "angular-ui-router": "ui-router#^0.3.1",
+    "bootstrap": "^3.3.7",
+    "crypto-js": "^3.1.6"
+  }
+}
