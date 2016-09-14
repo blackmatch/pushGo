@@ -1,6 +1,5 @@
 var redis = require('redis');
 var redisClient = redis.createClient();
-
 redisClient.on('error', function(err) {
 	console.log('connect to redis failed:' + err);
 });
@@ -107,6 +106,28 @@ exports.addEvent = function(data) {
 exports.removeEvent = function(eid) {
 	redisClient.del('event:' + eid);
 	redisClient.srem('eventset', eid);
+}
+
+exports.getEventList = function(next) {
+	redisClient.smembers('eventset',function(err,data){
+		if (err) {
+			next();
+			return;
+		}
+
+		next(data);
+	});
+}
+
+exports.getEventDetail = function(eid, next) {
+	redisClient.hgetall('event:' + eid, function(err, data){
+		if (err) {
+			next();
+			return;
+		}
+
+		next(data);
+	})
 }
 
 

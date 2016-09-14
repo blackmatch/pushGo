@@ -1,6 +1,7 @@
-/node_modules/
-/bower_components/
+server/node_modules/*
+web-client/bower_components/*
 *.DS_Store
 .DS_Store
 .*.swp
 .*.log
+.idea/*

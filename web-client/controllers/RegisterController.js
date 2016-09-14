@@ -4,7 +4,7 @@ app.controller('RegisterController', ['$scope', '$http', function ($scope, $http
         username:'',
         password:''
     }
-
+    
     $scope.register = function () {
         if ($scope.data.username.length > 0 && $scope.data.password.length > 0) {
             var userInfo = {

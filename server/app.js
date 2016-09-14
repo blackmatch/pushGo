@@ -35,19 +35,32 @@ io.on('connection', function(socket) {
 	socket.on('authentication', function(data) {
 		var uid = data.uid;
 		if (uid) {
-			redis.checkLogin(uid, function(data) {
+			// redis.checkLogin(uid, function(data) {
+			// 	if (data.status === 'OK') {
+			// 		socket.emit("authenticated", {
+			// 			status: 'OK'
+			// 		});
+			// 		pushEventListener(socket);
+			// 		eventReceivedListener(socket);
+			// 		redis.addOnlineUser(socket.id, uid);
+
+			// 	} else {
+			// 		socket.emit("authenticated", {
+			// 			status: 'FAILED'
+			// 		});
+			// 	}
+			// });
+			var info = {
+				uid: uid
+			}
+			mysql.checkUser(info, function(data) {
 				if (data.status === 'OK') {
-					socket.emit("authenticated", {
-						status: 'OK'
-					});
-					pushEventListener(socket);
-					eventReceivedListener(socket);
 					redis.addOnlineUser(socket.id, uid);
+					socket.emit('authenticated', data.data);
+					eventReceivedListener(socket);
 
 				} else {
-					socket.emit("authenticated", {
-						status: 'FAILED'
-					});
+					socket.emit('auth-failed', data);
 				}
 			});
 		}
@@ -90,25 +103,9 @@ var eventReceivedListener = function(socket) {
 
 app.post('/login', upload.array(), function(req, res) {
 
-	// if (req.body.username === 'toky' && req.body.password === '123456') {
-    //
-	// 	var uid = '1';
-	// 	redis.saveLogin(uid);
-	// 	res.send({
-	// 		status: "OK",
-	// 		uid: uid
-	// 	});
-    //
-	// } else {
-	// 	res.send({
-	// 		status: 'ERROR'
-	// 	});
-	// }
-
-
 	var userInfo = {
-		username:req.body.username,
-		password:req.body.password
+		username: req.body.username,
+		password: req.body.password
 	}
 
 	mysql.userLogin(userInfo, function(result) {
@@ -136,17 +133,17 @@ app.post('/pushEvent', upload.array(), function(req, res) {
 	var event = {
 		receiver: receiver,
 		content: content,
-		sender:uid
+		sender: uid
 	}
 
 	mysql.addEvent(event, function(result) {
 		if (result.status === 'OK') {
-			event.eid = result.eid;
+			event.eid = result.data.eid;
 			redis.addEvent(event);
 			redis.getSocketIDByUid(event.receiver, function(rresult) {
 				if (rresult.status === 'OK') {
-					
-					io.to(rresult.sid).emit('pushEvent', {eid:result.eid});
+
+					io.to(rresult.sid).emit('eventMsg', result.data);
 					var response = {
 						status: 'OK',
 						message: 'push has pushed.'
@@ -163,8 +160,66 @@ app.post('/pushEvent', upload.array(), function(req, res) {
 app.post('/register', upload.array(), function(req, res) {
 	var userInfo = req.body;
 	if (userInfo.username && userInfo.password) {
-		mysql.addUser(userInfo, function (dbresult) {
+		mysql.addUser(userInfo, function(dbresult) {
 			res.send(dbresult);
 		});
 	}
 });
+
+var handleEventWithId = function(eid) {
+	redis.getEventDetail(eid,function(data){
+		if (data && data.receiver) {
+			// console.log(data);
+			var now = new Date();
+			var nowSecs = now.getTime();
+			var addSecs = data.createAt;
+			var temp = nowSecs - addSecs;
+			data.eid = eid;
+
+			if (temp > 10) {
+				// var tries = data.tries;
+				// tries = (parseInt(tries))++;
+				//update tries
+
+				redis.getSocketIDByUid(data.receiver, function(resp){
+					if (resp.status === 'OK') {
+						var sid = resp.sid;
+						io.to(sid).emit('eventMsg',data);
+					}
+				});
+			}
+		}
+	});
+}
+
+var handleEvent = function() {
+	redis.getEventList(function(data){
+		if (data) {
+			for (var i in data) {
+				var eid = data[i];
+				handleEventWithId(eid);
+			}
+		}
+
+	});
+}
+
+var timeTask = function() {
+	var CronJob = require('cron').CronJob;
+	var job = new CronJob({
+		cronTime: '*/10 * * * * *',
+		onTick: function() {
+			/*
+			 * Runs every weekday (Monday through Friday)
+			 * at 11:30:00 AM. It does not run on Saturday
+			 * or Sunday.
+			 */
+			console.log(new Date());
+			handleEvent();
+		},
+		start: false,
+		timeZone: 'America/Los_Angeles'
+	});
+	job.start();
+}
+timeTask();

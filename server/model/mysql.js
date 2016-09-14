@@ -2,8 +2,6 @@ var mysql = require('mysql');
 var uuid = require('node-uuid');
 var config = require('../config.js')().mysql;
 
-console.log(config);
-
 var connection = mysql.createConnection({
 	host: config.host,
 	user: config.username,
@@ -69,13 +67,25 @@ exports.addEvent = function(data, callback) {
 			// connection.end();
 
 		} else {
-			response = {
-				status: 'OK',
-				eid: eid
-			}
 
-			callback(response);
-			// connection.end();
+			sql = 'select * from event where eid=?';
+			connection.query(sql, [eid], function(error, rows) {
+				if (error) {
+					console.log(error);
+					return;
+				}
+
+				if (rows.length > 0) {
+					var info = rows[0];
+					response = {
+						status: 'OK',
+						data: info
+					}
+
+					callback(response);
+				}
+
+			});
 		}
 
 	});
@@ -146,13 +156,13 @@ exports.addUser = function(data, next) {
 	var uid = uuid.v4();
 	var sql = 'insert into user(uid,username,password) values(?,?,?)';
 
-	var values = [uid,data.username,data.password];
+	var values = [uid, data.username, data.password];
 
-	connection.query(sql, values, function (error, rows) {
+	connection.query(sql, values, function(error, rows) {
 
 		var errorResp = {
-			status:'ERROR',
-			msg:'database error.'
+			status: 'ERROR',
+			msg: 'database error.'
 		}
 
 		if (error) {
@@ -161,7 +171,7 @@ exports.addUser = function(data, next) {
 		}
 
 		sql = "select * from user where uid='" + uid + "'";
-		connection.query(sql,function(error, rows) {
+		connection.query(sql, function(error, rows) {
 			if (error) {
 				next(errorResp);
 				return;
@@ -169,8 +179,8 @@ exports.addUser = function(data, next) {
 
 			var info = rows[0];
 			var succeedResp = {
-				status:'OK',
-				data:info
+				status: 'OK',
+				data: info
 			}
 
 			next(succeedResp);
@@ -180,57 +190,78 @@ exports.addUser = function(data, next) {
 	});
 }
 
-exports.userLogin = function (data, next) {
-    if (!data.username || !data.password) {
-        var errorRes = {
-            status:'ERROR',
-            msg:'lack of params.'
-        }
-        next(errorRes);
-        return;
-    }
+exports.userLogin = function(data, next) {
+	if (!data.username || !data.password) {
+		var errorRes = {
+			status: 'ERROR',
+			msg: 'lack of params.'
+		}
+		next(errorRes);
+		return;
+	}
 
-    var sql = "select * from user where username=? and password=?";
-    var query = connection.query(sql,[data.username,data.password], function (error, rows) {
-        if (error) {
-            var errorRes = {
-                status:'ERROR',
-                msg:'data base error.'
-            }
-            next(errorRes);
-            return;
-        }
+	var sql = "select * from user where username=? and password=?";
+	var query = connection.query(sql, [data.username, data.password], function(error, rows) {
+		if (error) {
+			var errorRes = {
+				status: 'ERROR',
+				msg: 'data base error.'
+			}
+			next(errorRes);
+			return;
+		}
 
-		console.log(rows);
+		if (rows.length === 0) {
+			var errorRes = {
+				status: 'ERROR',
+				msg: 'user name or password error.'
+			}
+			next(errorRes);
 
-        if (rows.length === 0) {
-            var errorRes = {
-                status:'ERROR',
-                msg:'user name or password error.'
-            }
-            next(errorRes);
-
-        } else {
-            var succeedRes = {
-                status:'OK',
-                data:rows[0]
-            }
-            next(succeedRes);
-        }
-    });
-
-    console.log(query.sql);
+		} else {
+			var succeedRes = {
+				status: 'OK',
+				data: rows[0]
+			}
+			next(succeedRes);
+		}
+	});
 }
 
+exports.checkUser = function(data, next) {
+	if (!data.uid) {
+		var errorRes = {
+			status: 'ERROR',
+			msg: 'lack of params.'
+		}
+		next(errorRes);
+		return;
+	}
 
+	var sql = "select * from user where uid=?";
+	var query = connection.query(sql, [data.uid], function(error, rows) {
+		if (error) {
+			var errorRes = {
+				status: 'ERROR',
+				msg: 'data base error.'
+			}
+			next(errorRes);
+			return;
+		}
 
+		if (rows.length === 0) {
+			var errorRes = {
+				status: 'ERROR',
+				msg: 'user not exists.'
+			}
+			next(errorRes);
 
-
-
-
-
-
-
-
-
-
+		} else {
+			var succeedRes = {
+				status: 'OK',
+				data: rows[0]
+			}
+			next(succeedRes);
+		}
+	});
+}
