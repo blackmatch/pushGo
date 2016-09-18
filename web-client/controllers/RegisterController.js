@@ -1,4 +1,4 @@
-app.controller('RegisterController', ['$scope', '$http', function ($scope, $http) {
+app.controller('RegisterController', ['$scope', '$http', '$state', function ($scope, $http, $state) {
 
     $scope.data = {
         username:'',
@@ -14,10 +14,10 @@ app.controller('RegisterController', ['$scope', '$http', function ($scope, $http
 
             $http.post('http://localhost:3000/register',userInfo).then(function (resp) {
                 if (resp.data.status === 'OK') {
-                    console.log('register success!');
+                    alert('register succeed!')
+                    $state.go('login');
 
                 } else {
-                    console.log('register failed!');
                     alert('sorry,register failed!');
                 }
 

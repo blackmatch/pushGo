@@ -3,9 +3,9 @@ app.controller('AdminController', ['$scope', '$http', function($scope, $http) {
 	$scope.push = function() {
 		var event = {
 			sender: 'admin',
-			receiver: '20927a2c-1250-402f-9b25-2b5752b7aebe',
+			receiver: 'e0435406-348d-4f1f-a9c2-836deb7a150a',
 			content: 'hello',
-			uid: '20927a2c-1250-402f-9b25-2b5752b7aebe'
+			uid: 'e0435406-348d-4f1f-a9c2-836deb7a150a'
 		}
 
 		$http.post('http://localhost:3000/pushEvent', event).then(function(resp) {

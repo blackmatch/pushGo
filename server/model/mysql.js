@@ -1,12 +1,16 @@
 var mysql = require('mysql');
 var uuid = require('node-uuid');
 var config = require('../config.js')().mysql;
+var dateFormat = require('dateformat');
+var redis = require('./redis.js');
+var encryptor = require('../tool/encryptor.js');
 
 var connection = mysql.createConnection({
 	host: config.host,
 	user: config.username,
 	password: config.password,
-	database: config.database
+	database: config.database,
+	timezone: config.timezone
 });
 
 connection.connect();
@@ -27,13 +31,12 @@ exports.addEvent = function(data, callback) {
 		}
 
 		callback(response);
-
 		return;
 	}
 
-	var eid = uuid.v4();
-	var keys = ['eid'];
-	var values = [eid];
+	var eventid = uuid.v4();
+	var keys = ['eventid'];
+	var values = [eventid];
 	for (var key in data) {
 		keys.push(key);
 		values.push(data[key]);
@@ -68,8 +71,8 @@ exports.addEvent = function(data, callback) {
 
 		} else {
 
-			sql = 'select * from event where eid=?';
-			connection.query(sql, [eid], function(error, rows) {
+			sql = 'select * from event where eventid=?';
+			connection.query(sql, [eventid], function(error, rows) {
 				if (error) {
 					console.log(error);
 					return;
@@ -77,11 +80,11 @@ exports.addEvent = function(data, callback) {
 
 				if (rows.length > 0) {
 					var info = rows[0];
+					console.log('mysql:' + JSON.stringify(info));
 					response = {
 						status: 'OK',
 						data: info
 					}
-
 					callback(response);
 				}
 
@@ -91,12 +94,10 @@ exports.addEvent = function(data, callback) {
 	});
 }
 
-exports.eventReceived = function(eid, callback) {
+exports.eventReceived = function(eventid, callback) {
 
-	var sql = "update event set received=1 ";
-	sql += "where eid='" + eid + "'";
-
-	var query = connection.query(sql, function(err, rows) {
+	var sql = 'update event set receiveAt=?,status=1 where eventid=?';
+	var query = connection.query(sql, [new Date(), eventid], function(err, rows) {
 		if (err) {
 			console.log(err);
 			response = {
@@ -109,7 +110,7 @@ exports.eventReceived = function(eid, callback) {
 		} else {
 			response = {
 				status: 'OK',
-				eid: eid
+				eventid: eventid
 			}
 
 			callback(response);
@@ -118,7 +119,7 @@ exports.eventReceived = function(eid, callback) {
 	});
 }
 
-exports.updateEvent = function(eid, data, callback) {
+exports.updateEvent = function(eventid, data, callback) {
 
 	var sql = "update event set ";
 
@@ -128,7 +129,7 @@ exports.updateEvent = function(eid, data, callback) {
 
 	sql = sql.substring(0, sql.length - 1);
 
-	sql += "where eid='" + eid + "'";
+	sql += "where eventid='" + eventid + "'";
 
 	var query = connection.query(sql, function(err, rows) {
 		if (err) {
@@ -143,7 +144,7 @@ exports.updateEvent = function(eid, data, callback) {
 		} else {
 			response = {
 				status: 'OK',
-				eid: eid
+				eventid: eventid
 			}
 
 			callback(response);
@@ -263,5 +264,130 @@ exports.checkUser = function(data, next) {
 			}
 			next(succeedRes);
 		}
+	});
+}
+
+exports.getFailedEvents = function(receiver, next) {
+	if (receiver) {
+		var sql = 'select * from event where receiver=? and status=2';
+		connection.query(sql, [receiver], function(err, rows) {
+			if (err) {
+				next();
+				return;
+			}
+
+			next(rows);
+
+		});
+
+	} else {
+		next();
+	}
+}
+
+exports.updateEventStatus = function(eventid, status, next) {
+
+	var sql = 'update event set status=';
+	var now = new Date();
+	now = dateFormat(now, "yyyy-mm-dd HH:MM:ss");
+	switch (status) {
+		case 1:
+			{
+				sql += '1,receiveAt=? where eventid=?';
+				var q = connection.query(sql, [now, eventid], function(err, rows) {
+					if (err) {
+						console.log(err);
+						return;
+					}
+				});
+				break;
+			}
+		case 2:
+			{
+				sql += '2 where eventid=?';
+				connection.query(sql, [eventid], function(err, rows) {
+					if (err) {
+						console.log(err);
+						return;
+					}
+				});
+				break;
+			}
+		case 3:
+			{
+				sql += '3,readAt=? where eventid=?';
+				connection.query(sql, [now, eventid], function(err, rows) {
+					if (err) {
+						console.log(err);
+						return;
+					}
+				});
+				break;
+			}
+	}
+}
+
+exports.addUserToken = function(data, next) {
+	var errorResponse = {
+		status: 'ERROR',
+		msg: 'add token failed.'
+	}
+
+	var successResponse = {
+		status: 'OK',
+		msg: 'add token ok.'
+	}
+
+	if (!data || !data.token || !data.uid) {
+		next(errorResponse);
+		return;
+	}
+
+	var sql = 'update user set token=? where uid=?';
+	connection.query(sql, [data.token, data.uid], function(err, rows) {
+		if (err) {
+			next(errorResponse);
+			return;
+		}
+
+		next(successResponse);
+	});
+}
+
+exports.validateUserToken = function(data, next) {
+	var errorResponse = {
+		status: 'ERROR',
+		msg: 'check token failed.'
+	}
+
+	var successResponse = {
+		status: 'OK',
+		msg: 'check token ok.'
+	}
+
+	if (!data || !data.token || !data.uid) {
+		next(errorResponse);
+		return;
+	}
+
+	var sql = 'select token from user where uid=?';
+	connection.query(sql, [data.uid], function(err, rows) {
+		if (err) {
+			console.log(err);
+			next(errorResponse);
+			return;
+		}
+
+		var token = rows[0].token;
+		var dec = encryptor.decrypt(token);
+		var uid = dec.split('+')[0];
+
+		if (uid === data.uid) {
+			next(successResponse);
+
+		} else {
+			next(errorResponse);
+		}
+		
 	});
 }

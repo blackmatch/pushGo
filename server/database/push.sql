@@ -1,29 +1,31 @@
-DROP DATABASE IF EXISTS push;
+DROP DATABASE IF EXISTS event_system;
 
-CREATE DATABASE push DEFAULT CHARACTER SET utf8 collate utf8_general_ci;
+CREATE DATABASE event_system DEFAULT CHARACTER SET utf8 collate utf8_general_ci;
 
-USE push;
+USE event_system;
 
 CREATE TABLE `event` (
-  `eid` varchar(36) NOT NULL,
-  `sender` varchar(36) DEFAULT 'SERVER',
+  `eventid` varchar(36) NOT NULL,
+  `sender` varchar(36) DEFAULT 'server',
   `receiver` varchar(36) NOT NULL,
-  `content` text NOT NULL,
-  `received` tinyint(1) DEFAULT 0,
-  `read` tinyint(1) DEFAULT 0,
-  `device` ENUM('web','iOS','Android','unknow') DEFAULT 'unknow',
-  `way` varchar(100) DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL,
+  `content` varchar(1000) NOT NULL,
   `createAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`eid`)
+  `senderDevice` ENUM('web','iOS','Android','server') DEFAULT 'server',
+  `receiverDevice` ENUM('web','iOS','Android') DEFAULT 'web',
+  `channel` ENUM('socket','jpush') DEFAULT 'socket',
+  `receiveAt` timestamp NULL DEFAULT NULL,
+  `readAt` timestamp NULL DEFAULT NULL,
+  `status` tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`eventid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;	
 
 CREATE TABLE `user` (
   `uid` varchar(36) NOT NULL,
   `username` varchar(100) NOT NULL,
   `nickname` varchar(100),
-  `password` varchar(200) NOT NULL,
+  `password` varchar(500) NOT NULL,
   `createAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `token` varchar(2500),
   PRIMARY KEY (`uid`),
   UNIQUE (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;	

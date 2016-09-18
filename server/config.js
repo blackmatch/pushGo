@@ -4,7 +4,8 @@ module.exports = function() {
 			host:'localhost',
 			username:'root',
 			password:'myDb@140225',
-			database:'push'
+			database:'event_system',
+			timezone:'Asia/Shanghai'
 		},
 		redis: {
 

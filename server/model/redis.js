@@ -35,7 +35,6 @@ exports.checkLogin = function(uid, callback) {
 			} else {
 				callback({status:'ERROR'});
 			}
-			
 		}
 
 	});
@@ -53,6 +52,8 @@ exports.removeOnlineUser = function(sid) {
 			return;
 		}
 
+		console.log('remove:' + uid);
+		
 		if (uid) {
 			redisClient.del('user:' + uid);
 			redisClient.del('online:' + sid);
@@ -91,21 +92,29 @@ exports.getSocketIDByUid = function(uid, callback) {
 }
 
 exports.addEvent = function(data) {
-	var eid = data.eid;
-	var key = 'event:' + eid;
+	var eventid = data.eventid;
+	var key = 'event:' + eventid;
 
-	redisClient.hset(key, 'receiver', data.receiver);
-	redisClient.hset(key, 'content', data.content);
-	redisClient.hset(key, 'createAt', new Date().getTime());
-	redisClient.hset(key, 'tries', '1');
+	// redisClient.hset(key, 'receiver', data.receiver);
+	// redisClient.hset(key, 'content', data.content);
+	// redisClient.hset(key, 'createAt', new Date().getTime());
+	// redisClient.hset(key, 'tries', '1');
 
-	redisClient.sadd('eventset', eid);
+	data.tries = 1;
+	// console.log(data);
+	for (var k in data) {
+		if (data[k] !== null) {
+			redisClient.hset(key, k, data[k]);
+		}
+	}
+
+	redisClient.sadd('eventset', eventid);
 
 }
 
-exports.removeEvent = function(eid) {
-	redisClient.del('event:' + eid);
-	redisClient.srem('eventset', eid);
+exports.removeEvent = function(eventid) {
+	redisClient.del('event:' + eventid);
+	redisClient.srem('eventset', eventid);
 }
 
 exports.getEventList = function(next) {
@@ -119,8 +128,8 @@ exports.getEventList = function(next) {
 	});
 }
 
-exports.getEventDetail = function(eid, next) {
-	redisClient.hgetall('event:' + eid, function(err, data){
+exports.getEventDetail = function(eventid, next) {
+	redisClient.hgetall('event:' + eventid, function(err, data){
 		if (err) {
 			next();
 			return;
@@ -128,6 +137,10 @@ exports.getEventDetail = function(eid, next) {
 
 		next(data);
 	})
+}
+
+exports.tryPushEvent = function(eventid, tries) {
+	redisClient.hset('event:' + eventid, 'tries', tries);
 }
 
 

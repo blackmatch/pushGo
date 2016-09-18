@@ -19,10 +19,13 @@
   "dependencies": {
     "body-parser": "^1.15.2",
     "cron": "^1.1.0",
+    "dateformat": "^1.0.12",
     "express": "^4.14.0",
     "http": "0.0.0",
+    "jpush-sdk": "^3.2.5",
     "multer": "^1.2.0",
     "mysql": "^2.11.1",
+    "node-rsa": "^0.4.1",
     "node-uuid": "^1.4.7",
     "redis": "^2.6.2",
     "socket.io": "^1.4.8",
