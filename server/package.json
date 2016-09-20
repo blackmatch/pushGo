@@ -20,6 +20,7 @@
     "body-parser": "^1.15.2",
     "cron": "^1.1.0",
     "dateformat": "^1.0.12",
+    "eventproxy": "^0.3.5",
     "express": "^4.14.0",
     "http": "0.0.0",
     "jpush-sdk": "^3.2.5",
