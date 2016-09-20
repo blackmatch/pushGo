@@ -1,7 +1,8 @@
 app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', function($scope, $http, socket, $cookies) {
 
 	$scope.data = {
-		events: []
+		events: [],
+		users: []
 	}
 
 	var uid = $cookies.get('apple');
@@ -56,5 +57,41 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 		$scope.data.events.push(data);
 		socket.emit('eventReceived', data);
 	});
+
+	var getAllUsers = function(){
+		$http.get('http://localhost:3000/users').then(function(response){
+			if (response.data.status === 'OK') {
+				$scope.data.users = response.data.data;
+			}
+
+		}, function(error){
+
+		});
+	}
+
+	getAllUsers();
+
+	$scope.sendToSomeone = function(user){
+		var event = {
+			sender: uid,
+			receiver: user.uid,
+			content: 'hello,' + user.username,
+			uid: uid
+		}
+
+		var params = {
+			uid: uid,
+			event: event
+		}
+
+		socket.emit('sendEventMsg', params);
+		
+		// $http.post('http://localhost:3000/pushEvent', event).then(function(resp) {
+		// 	console.log(resp.data);
+
+		// }, function(error) {
+		// 	console.log(error);
+		// });
+	}
 
 }])

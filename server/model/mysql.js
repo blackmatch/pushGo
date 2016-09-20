@@ -391,3 +391,26 @@ exports.validateUserToken = function(data, next) {
 		
 	});
 }
+
+exports.getAllUsers = function(uid, next) {
+	var sql = 'select uid,username from user';
+
+	connection.query(sql, function(err, rows){
+		if (err) {
+			console.log(err);
+			var response = {
+				status: 'ERROR',
+				msg: 'database error.'
+			}
+			next(response);
+			return;
+		}
+
+		var response = {
+			status: 'OK',
+			data: rows
+		}
+
+		next(response);
+	});
+}

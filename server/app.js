@@ -31,72 +31,45 @@ server.listen(3000, function(req, res) {
 	console.log('app is running on port 3000.');
 });
 
-// process.env.TZ = 'Europe/Amsterdam';
-
 io.on('connection', function(socket) {
 	console.log('client connected:' + socket.id);
 
 	//waiting client send auth msg
 	socket.on('authentication', function(data) {
+
+		console.log(JSON.stringify(data));
 		var uid = data.uid;
 		var encrypted = data.tt;
-		// console.log('encrypted: ' + encrypted);
-		// var key = new NodeRSA();
-		// key.setOptions({encryptionScheme: 'pkcs1'});
-		// var key = new NodeRSA('-----BEGIN RSA PRIVATE KEY-----\n' +
-		// 	'MIICXQIBAAKBgQC+qTxcyz4WYmIGnF/ro0xlJ1373xT1mJgCP9QhY3UVRP8z4IYV\n' +
-		// 	'09R7dSKNCtCgKHacRp23epTR/FcLNXr4CsIw5tEBL6I88A8yZeZNfgyLgMWA7y5o\n' +
-		// 	'afFY8K9G+IYTuynmlUfQIf4+Q68lMc+N7wn7c7HPHhLNb1irL0cJFNms7wIDAQAB\n' +
-		// 	'AoGATexbCE3kvT9Ocwc8SNE/6uOxDLz7EvlfvyOZLmA4vQ2rA+fSxV8DK8YO7fgq\n' +
-		// 	'lhqTh4Fw+kk2Q7BPXvxnmrLC9IZUMUTNCaoc/xdWSY4E4jhgvd0787Vk3WEdby3r\n' +
-		// 	'GyuptkcoSZpPoCiZ5v5L+5TGD71cj5nIwSxkcmPfJ9F4rkkCQQDwfF7BPgjXZyzh\n' +
-		// 	'Id1dbfytZVf4SyutGYrcDy2Pd2RRfIM+kx5SjxXhkSdBDu6ZV0xC+fFwFRG9sD/P\n' +
-		// 	'k48iAjUDAkEAyvYCN6ln0g7DgEziFtQFUXM8EfwzxPOvyIBAJNeVuWX0h33uj+mM\n' +
-		// 	'ODw3iFYEqqinTR7ZbFiixDGVG9i3N1/WpQJBALLuNqpdd8Kdd90Cj2xGu6xgLTYG\n' +
-		// 	'6DZhPNpDSMjoMnIWzKgwWm1fHQ66K5TSgWECfTGQOr4ETzDuBGx0BBlvvvUCQC3r\n' +
-		// 	's1y8q4zPYlRpEM5xcjKXjAPVuDDboe4PdnPfgzTLaKQvTgappNwkY7wpGi0ys4ez\n' +
-		// 	'byYgd9NEFKSUR//zYzECQQDg57CFNILBZtItGoDUBXWkHDfw7al7fgPjMtQU6PwZ\n' +
-		// 	'o6lLEvwCgIv0ltLaxgbzBPan+0PS54Fonrq7szNgD4ic\n' +
-		// 	'-----END RSA PRIVATE KEY-----');
-		// keyData = '-----BEGIN RSA PRIVATE KEY-----\n' +
-		// 	'MIICXQIBAAKBgQC+qTxcyz4WYmIGnF/ro0xlJ1373xT1mJgCP9QhY3UVRP8z4IYV\n' +
-		// 	'09R7dSKNCtCgKHacRp23epTR/FcLNXr4CsIw5tEBL6I88A8yZeZNfgyLgMWA7y5o\n' +
-		// 	'afFY8K9G+IYTuynmlUfQIf4+Q68lMc+N7wn7c7HPHhLNb1irL0cJFNms7wIDAQAB\n' +
-		// 	'AoGATexbCE3kvT9Ocwc8SNE/6uOxDLz7EvlfvyOZLmA4vQ2rA+fSxV8DK8YO7fgq\n' +
-		// 	'lhqTh4Fw+kk2Q7BPXvxnmrLC9IZUMUTNCaoc/xdWSY4E4jhgvd0787Vk3WEdby3r\n' +
-		// 	'GyuptkcoSZpPoCiZ5v5L+5TGD71cj5nIwSxkcmPfJ9F4rkkCQQDwfF7BPgjXZyzh\n' +
-		// 	'Id1dbfytZVf4SyutGYrcDy2Pd2RRfIM+kx5SjxXhkSdBDu6ZV0xC+fFwFRG9sD/P\n' +
-		// 	'k48iAjUDAkEAyvYCN6ln0g7DgEziFtQFUXM8EfwzxPOvyIBAJNeVuWX0h33uj+mM\n' +
-		// 	'ODw3iFYEqqinTR7ZbFiixDGVG9i3N1/WpQJBALLuNqpdd8Kdd90Cj2xGu6xgLTYG\n' +
-		// 	'6DZhPNpDSMjoMnIWzKgwWm1fHQ66K5TSgWECfTGQOr4ETzDuBGx0BBlvvvUCQC3r\n' +
-		// 	's1y8q4zPYlRpEM5xcjKXjAPVuDDboe4PdnPfgzTLaKQvTgappNwkY7wpGi0ys4ez\n' +
-		// 	'byYgd9NEFKSUR//zYzECQQDg57CFNILBZtItGoDUBXWkHDfw7al7fgPjMtQU6PwZ\n' +
-		// 	'o6lLEvwCgIv0ltLaxgbzBPan+0PS54Fonrq7szNgD4ic\n' +
-		// 	'-----END RSA PRIVATE KEY-----'
-		// key.importKey(keyData, 'pkcs1');
-		// var decrypted = key.decrypt(encrypted, 'utf8');
-		// console.log('decrypted: ' + decrypted);
-		if (uid) {
+
+		//validate user
+		if (uid && encrypted) {
 			var info = {
 				uid: uid,
 				token: data.tt
 			}
 
-			mysql.validateUserToken(info, function(response){
-				console.log(response);
+			mysql.validateUserToken(info, function(response) {
+				if (response.status === 'OK') {
+					console.log('user auth ok.');
+					redis.addOnlineUser(socket.id, uid);
+					socket.emit('authenticated', response);
+					eventReceivedListener(socket);
+					eventReadListener(socket);
+					handleFailedEvents(uid);
+					sendEventMsgListener(socket);
+
+				} else {
+					socket.emit('auth-failed', response);
+				}
 			});
 
-			// mysql.checkUser(info, function(data) {
-			// 	if (data.status === 'OK') {
-			// 		redis.addOnlineUser(socket.id, uid);
-			// 		socket.emit('authenticated', data.data);
-			// 		eventReceivedListener(socket);
-			// 		handleFailedEvents(uid);
+		} else {
+			var errResponse = {
+				status: 'ERROR',
+				msg: 'lack of params.'
+			}
 
-			// 	} else {
-			// 		socket.emit('auth-failed', data);
-			// 	}
-			// });
+			socket.emit('auth-failed', errResponse);
 		}
 	});
 
@@ -108,9 +81,47 @@ io.on('connection', function(socket) {
 
 });
 
-// io.on('disconnect', function(socket){
-// 	console.log('client disconnected:' + socket.id);
-// });
+var sendEventMsgListener = function(socket) {
+	socket.on('sendEventMsg', function(data) {
+		mysql.addEvent(data.event, function(result) {
+			if (result.status === 'OK') {
+				console.log('redis:' + JSON.stringify(result.data));
+				redis.addEvent(result.data); //TODO callback(next)
+				redis.getSocketIDByUid(event.receiver, function(rresult) {
+					if (rresult.status === 'OK') {
+
+						io.to(rresult.sid).emit('eventMsg', result.data);
+						var response = {
+							status: 'OK',
+							message: 'push has pushed.'
+						}
+
+						// res.send(response);
+
+					} else {
+
+						var response = {
+							status: 'OK',
+							message: 'waiting to  pushed.'
+						}
+
+						// res.send(response);
+					}
+
+				});
+
+			} else {
+
+				var response = {
+					status: 'ERROR',
+					message: 'database error.'
+				}
+
+				// res.send(response);
+			}
+		});
+	});
+}
 
 var handleFailedEvents = function(uid) {
 	mysql.getFailedEvents(uid, function(data) {
@@ -147,13 +158,22 @@ var pushEventListener = function(socket) {
 
 var eventReceivedListener = function(socket) {
 	socket.on('eventReceived', function(data) {
+		console.log(JSON.stringify(data));
 		var eventid = data.eventid;
 		if (eventid) {
-			// mysql.eventReceived(eventid, function(result) {
-
-			// });
 			mysql.updateEventStatus(eventid, 1);
 			redis.removeEvent(eventid);
+		}
+	});
+}
+
+var eventReadListener = function(socket) {
+	socket.on('eventRead', function(data) {
+		console.log(JSON.stringify(data));
+		var eventid = data.eventid;
+		if (eventid) {
+			mysql.updateEventStatus(eventid, 3);
+			// redis.removeEvent(eventid);
 		}
 	});
 }
@@ -165,9 +185,11 @@ app.post('/login', upload.array(), function(req, res) {
 		password: req.body.password
 	}
 
+	console.log(req.body);
+
 	mysql.userLogin(userInfo, function(result) {
 		res.send(result);
-		
+
 		var now = new Date();
 		now = now.getTime().toString();
 		var origin = result.data.uid + '+' + now;
@@ -178,7 +200,7 @@ app.post('/login', upload.array(), function(req, res) {
 			token: encrypted
 		}
 
-		mysql.addUserToken(info, function(response){
+		mysql.addUserToken(info, function(response) {
 			console.log(response);
 		});
 	});
@@ -209,9 +231,8 @@ app.post('/pushEvent', upload.array(), function(req, res) {
 
 	mysql.addEvent(event, function(result) {
 		if (result.status === 'OK') {
-			// event.eventid = result.data.eventid;
 			console.log('redis:' + JSON.stringify(result.data));
-			redis.addEvent(result.data);
+			redis.addEvent(result.data); //TODO callback(next)
 			redis.getSocketIDByUid(event.receiver, function(rresult) {
 				if (rresult.status === 'OK') {
 
@@ -222,6 +243,7 @@ app.post('/pushEvent', upload.array(), function(req, res) {
 					}
 
 					res.send(response);
+
 				} else {
 
 					var response = {
@@ -254,6 +276,14 @@ app.post('/register', upload.array(), function(req, res) {
 			res.send(dbresult);
 		});
 	}
+});
+
+app.get('/users', function(req, res) {
+
+	mysql.getAllUsers(req.query.uid, function(response) {
+		res.send(response);
+	});
+
 });
 
 var handleEventWithId = function(eventid) {
@@ -295,10 +325,10 @@ var handleEvent = function() {
 			console.log('to:' + data);
 			for (var i in data) {
 				var eventid = data[i];
+				console.log(i.toString() + ': ' + eventid);
 				handleEventWithId(eventid);
 			}
 		}
-
 	});
 }
 
