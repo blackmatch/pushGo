@@ -58,6 +58,11 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 		socket.emit('eventReceived', data);
 	});
 
+	socket.on('newMsg', function(data) {
+		$scope.data.events.push(data);
+		socket.emit('eventReceived', data);
+	});
+
 	var getAllUsers = function(){
 		$http.get('http://localhost:3000/users').then(function(response){
 			if (response.data.status === 'OK') {
@@ -72,7 +77,7 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 	getAllUsers();
 
 	$scope.sendToSomeone = function(user){
-		var event = {
+		var msg = {
 			sender: uid,
 			receiver: user.uid,
 			content: 'hello,' + user.username,
@@ -81,11 +86,11 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 
 		var params = {
 			uid: uid,
-			event: event
+			msg: msg
 		}
 
 		socket.emit('sendEventMsg', params);
-		
+
 		// $http.post('http://localhost:3000/pushEvent', event).then(function(resp) {
 		// 	console.log(resp.data);
 

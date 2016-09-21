@@ -105,20 +105,62 @@ UserRedis.prototype.remove = function(sid, next) {
 				msg: 'remove user from redis failed.'
 			}
 			next(response);
-			//TODO: remove hash fields from redis(if set)
+			//TODO: do something
 		}
 
 	});
 
-	redisClient.hget('SidToUid', sid, function(error, uid){
+	redisClient.hget('SidToUid', sid, function(error, uid) {
 		if (error) {
+			var response = {
+				status: 'ERROR',
+				msg: 'get uid by sid from redis failed.'
+			}
+			ep.emit('removeUid', response);
 			return;
 		}
 
 		if (myTool.isEmptyString(uid)) {
+			var response = {
+				status: 'ERROR',
+				msg: 'get uid by sid from redis failed.'
+			}
+			ep.emit('removeUid', response);
 
 		} else {
-			
+			redisClient.hdel('UidToSid', uid, function(error, resp) {
+				if (error) {
+					var response = {
+						status: 'ERROR',
+						msg: 'remove uid from redis failed.'
+					}
+					ep.emit('removeUid', response);
+					return;
+				}
+
+				var response = {
+					status: 'OK',
+					msg: 'remove uid from redis ok.'
+				}
+				ep.emit('removeUid', response);
+			});
 		}
+	});
+
+	redisClient.hdel('SidToUid', sid, function(error, resp) {
+		if (error) {
+			var response = {
+				status: 'ERROR',
+				msg: 'remove sid from redis failed.'
+			}
+			ep.emit('removeSid', response);
+			return;
+		}
+
+		var response = {
+			status: 'OK',
+			msg: 'remove sid from redis ok.'
+		}
+		ep.emit('removeSid', response);
 	});
 }

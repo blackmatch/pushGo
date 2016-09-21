@@ -1,14 +1,13 @@
-module.exports = function() {
-	return {
-		mysql: {
-			host:'localhost',
-			username:'root',
-			password:'myDb@140225',
-			database:'event_system',
-			timezone:'Asia/Shanghai'
-		},
-		redis: {
+var Config = function() {
 
-		}
-	}
+}
+
+module.exports = Config;
+
+Config.prototype.mysql = {
+	host: 'localhost',
+	username: 'root',
+	password: 'myDb@140225',
+	database: 'msg',
+	timezone: 'Asia/Shanghai'
 }
