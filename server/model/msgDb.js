@@ -121,7 +121,7 @@ MsgDb.prototype.msgDetail = function(msgid, next) {
 
 		if (rows.length > 0) {
 			var info = rows[0];
-			var newInfo;
+			var newInfo = {};
 			for (var key in info) {
 				var value = info[key];
 				if (value) {

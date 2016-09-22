@@ -2,18 +2,24 @@ var EventProxy = require('eventproxy');
 var tool = require('../tool/myTool.js');
 var myTool = new tool();
 
-var UserController = require('./userController.js');
-var UserManager = new UserController();
+var UserModule = require('./UserModule.js');
+var User = new UserModule();
 
-var MsgController = function(io) {
-	this.io = io;
+// var MsgModule = function(io) {
+// 	this.io = io;
+// }
+
+var MsgModule = function(socket) {
+	this.socket = socket;
 }
 
-module.exports = MsgController;
+module.exports = MsgModule;
 
-MsgController.prototype.sendMsgBySocket = function(msg, next) {
-	var io = this.io;
-	UserManager.isOnline(msg.receiver, function(error, response){
+MsgModule.prototype.sendMsgBySocket = function(msg, next) {
+	// var io = this.io;
+	var socket = this.socket;
+
+	User.isOnline(msg.receiver, function(error, response){
 		if (error) {
 			var err = {
 				msg: 'check user online failed.'
@@ -31,7 +37,8 @@ MsgController.prototype.sendMsgBySocket = function(msg, next) {
 			next(err);
 
 		} else {
-			io.to(sid).emit('newMsg', msg);
+			// io.to(sid).emit('newMsg', msg);
+			socket.to(sid).emit('newMsg', msg);
 			var result = {
 				msg: 'msg has been sent.'
 			}

@@ -29,7 +29,7 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 			console.log('connected!');
 			var info = {
 				uid: uid,
-				tt: encrypted
+				token: encrypted
 			}
 			socket.emit('authentication', info);
 		});
@@ -59,8 +59,9 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 	});
 
 	socket.on('newMsg', function(data) {
+		console.log('newMsg:' + data);
 		$scope.data.events.push(data);
-		socket.emit('eventReceived', data);
+		// socket.emit('eventReceived', data);
 	});
 
 	var getAllUsers = function(){
@@ -97,6 +98,25 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 		// }, function(error) {
 		// 	console.log(error);
 		// });
+	}
+
+	
+
+	$scope.sendMsg = function() {
+		console.log('44444');
+		var msg = {
+			sender: uid,
+			receiver: '513de81a-9c05-45e4-9dee-b5328377743e',
+			content: {text: 'hello, yi'},
+			uid: uid
+		}
+
+		var params = {
+			uid: uid,
+			msg: msg
+		}
+
+		socket.emit('newMsg', params);
 	}
 
 }])

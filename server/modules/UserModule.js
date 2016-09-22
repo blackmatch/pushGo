@@ -21,13 +21,18 @@ var connection = mysql.createConnection({
 });
 connection.connect();
 
-var UserController = function() {
+var EncryptorModule = require('../tool/encryptor.js');
+var Encryptor = new EncryptorModule();
+var UserDbModule = require('../model/userDb.js');
+var UserDb = new UserDbModule();
+
+var UserModule = function() {
 
 }
 
-module.exports = UserController;
+module.exports = UserModule;
 
-UserController.prototype.isOnline = function(uid, next) {
+UserModule.prototype.isOnline = function(uid, next) {
 	var ep = new EventProxy();
 	ep.all('checkUid', 'checkSid', function(checkUid, checkSid) {
 		console.log(checkUid);
@@ -99,7 +104,7 @@ UserController.prototype.isOnline = function(uid, next) {
 	});
 }
 
-UserController.prototype.login = function(data, next) {
+UserModule.prototype.login = function(data, next) {
 	if (myTool.isEmptyString(data.username) || myTool.isEmptyString(data.password)) {
 		var err = {
 			msg: 'lack of params.'
@@ -109,7 +114,7 @@ UserController.prototype.login = function(data, next) {
 	}
 
 	var sql = 'select * from user where username=? and password=?';
-	connection.query(sql, [data.username, data.password], function(error, rows){
+	connection.query(sql, [data.username, data.password], function(error, rows) {
 		if (error) {
 			var err = {
 				msg: 'database error.'
@@ -137,18 +142,46 @@ UserController.prototype.login = function(data, next) {
 	});
 }
 
+UserModule.prototype.auth = function(data, next) {
+	if (myTool.isEmptyString(data.token)) {
+		var err = {
+			msg: 'lack of token'
+		}
+		next(err);
+		return;
+	}
 
+	var decrypted = Encryptor.rsaDecrypt(data.token);
+	if (myTool.isEmptyString(decrypted)) {
+		var err = {
+			msg: 'decrypt token failed.'
+		}
+		next(err);
+		return;
+	}
 
+	var uid = decrypted.split('+')[0];
+	if (myTool.isEmptyString(uid)) {
+		var err = {
+			msg: 'get uid failed.'
+		}
+		next(err);
+		return;
+	}
 
+	UserDb.userDetail(uid, function(error, response) {
+		if (error) {
+			var err = {
+				msg: error.msg
+			}
+			next(err);
+			return;
+		}
 
-
-
-
-
-
-
-
-
-
-
-
+		var result = {
+			msg: 'user auth ok.',
+			userInfo: response.userInfo
+		}
+		next(null, result);
+	});
+}

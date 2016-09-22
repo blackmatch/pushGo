@@ -13,7 +13,10 @@ SocketController.prototype.onConnected = function(next) {
 	io.on('connection', function(socket){
 		// next(socket);
 		console.log('client connected:' + socket.id);
-		var SocketHandle = new SocketHandleModule();
+		console.log(JSON.stringify(io.sockets.adapter.rooms));
+		console.log('io sockets:' + io.sockets);
+		next(socket);
+		// var SocketHandle = new SocketHandleModule();
 	});
 }
 

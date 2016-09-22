@@ -21,20 +21,49 @@ server.listen(3000, function(req, res) {
 });
 
 /* ===================== custom modules begin ===================== */
-// var SocketHandleModule = require('./modules/SocketHandleModule.js');
-// var SocketHandle = new SocketHandleModule();
-
+var SocketHandleModule = require('./modules/SocketHandleModule.js');
 var SocketModule = require('./modules/SocketModule.js');
-var Socket = new SocketModule();
+var Socket = new SocketModule(server);
+Socket.onConnected(function(socket){
+	var SocketHandle = new SocketHandleModule(socket);
+});
 
 var UserModule = require('./modules/UserModule.js');
 var User = new UserModule();
+
+var ListenerModule = require('./modules/ListenerModule.js');
+var Listener = new ListenerModule();
+
+var UserDbModule = require('./model/userDb.js');
+var UserDb = new UserDbModule();
 
 /* ===================== custom modules end ===================== */
 
 /* ===================== express api begin ===================== */
 app.post('/user/register', upload.array(), function(req, res) {
-	var userInfo = req.body;
+	var userInfo = {
+		username: req.body.username,
+		password: req.body.password
+	}
+
+	UserDb.add(userInfo, function(error, response){
+		if (error) {
+			var result = {
+				status: 'ERROR',
+				msg: error.msg
+			}
+			res.send(result);
+			return;
+		}
+
+		var result = {
+			status: 'OK',
+			msg: 'register successfully.',
+			data: response.userInfo
+		}
+		res.send(result);
+
+	});
 });
 
 app.post('/user/login', upload.array(), function(req, res) {

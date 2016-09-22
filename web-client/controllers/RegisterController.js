@@ -12,7 +12,7 @@ app.controller('RegisterController', ['$scope', '$http', '$state', function ($sc
                 password:CryptoJS.MD5($scope.data.password).toString()
             }
 
-            $http.post('http://localhost:3000/register',userInfo).then(function (resp) {
+            $http.post('http://localhost:3000/user/register',userInfo).then(function (resp) {
                 if (resp.data.status === 'OK') {
                     alert('register succeed!')
                     $state.go('login');

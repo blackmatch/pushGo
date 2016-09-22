@@ -11,7 +11,7 @@ app.controller('LoginController', ['$scope', '$http', '$state', '$cookies', func
             password: CryptoJS.MD5($scope.data.password).toString()
         }
 
-        $http.post('http://localhost:3000/login', userInfo).then(function(resp) {
+        $http.post('http://localhost:3000/user/login', userInfo).then(function(resp) {
 
             if (resp.data.status === 'OK') {
                 var now = new Date();

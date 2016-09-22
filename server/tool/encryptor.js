@@ -1,5 +1,9 @@
-var NodeRSA = require('node-rsa');
+var Encryptor = function(){
 
+}
+module.exports = Encryptor;
+
+var NodeRSA = require('node-rsa');
 var rsa = new NodeRSA();
 rsa.setOptions({encryptionScheme: 'pkcs1'});
 
@@ -30,10 +34,10 @@ var publicKey = '-----BEGIN PUBLIC KEY-----\n' +
 			'-----END PUBLIC KEY-----';
 rsa.importKey(publicKey, 'public');
 
-exports.encrypt = function(origin) {
+Encryptor.prototype.rsaEncrypt = function(origin) {
 	return rsa.encrypt(origin, 'base64');
 }
 
-exports.decrypt = function(encrypted) {
+Encryptor.prototype.rsaDecrypt = function(encrypted) {
 	return rsa.decrypt(encrypted, 'utf8');
 }

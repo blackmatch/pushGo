@@ -17,29 +17,26 @@ module.exports = UserRedis;
 
 UserRedis.prototype.add = function(uid, sid, next) {
 	if (myTool.isEmptyString(uid) || myTool.isEmptyString(sid)) {
-		var response = {
-			status: 'ERROR',
+		var err = {
 			msg: 'lack of params.'
 		}
-		next(response);
+		next(err);
 		return;
 	}
 
 	var ep = new EventProxy();
 	ep.all('uidAdded', 'sidAdded', function(uidResp, sidResp) {
 		if (uidResp.status === 'OK' && sidResp.status === 'OK') {
-			var response = {
-				status: 'OK',
+			var result = {
 				msg: 'add user to redis ok.'
 			}
-			next(response);
+			next(null, result);
 
 		} else {
-			var response = {
-				status: 'ERROR',
+			var err = {
 				msg: 'add user to redis failed.'
 			}
-			next(response);
+			next(err);
 			//TODO: remove hash fields from redis(if set)
 		}
 
@@ -52,6 +49,7 @@ UserRedis.prototype.add = function(uid, sid, next) {
 				msg: 'add uid to redis failed.'
 			}
 			ep.emit('uidAdded', resp);
+
 			return;
 		}
 
@@ -82,29 +80,26 @@ UserRedis.prototype.add = function(uid, sid, next) {
 
 UserRedis.prototype.remove = function(sid, next) {
 	if (myTool.isEmptyString(sid)) {
-		var response = {
-			status: 'ERROR',
+		var err = {
 			msg: 'lack of params.'
 		}
-		next(response);
+		next(err);
 		return;
 	}
 
 	var ep = new EventProxy();
 	ep.all('removeUid', 'removeSid', function(uidResp, sidResp) {
 		if (uidResp.status === 'OK' && sidResp.status === 'OK') {
-			var response = {
-				status: 'OK',
+			var result = {
 				msg: 'remove user from redis ok.'
 			}
-			next(response);
+			next(null, result);
 
 		} else {
-			var response = {
-				status: 'ERROR',
+			var err = {
 				msg: 'remove user from redis failed.'
 			}
-			next(response);
+			next(err);
 			//TODO: do something
 		}
 

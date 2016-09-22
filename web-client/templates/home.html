@@ -3,7 +3,7 @@
 	<div class="row">
 		<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
 			<ul>
-				<li ng-repeat="event in data.events">
+				<li ng-repeat="event in data.events.content.text">
 					<p ng-bind="event.content + event.createAt"></p>
 				</li>
 			</ul>
@@ -16,4 +16,5 @@
 			</ul>
 		</div>
 	</div>
+	<button ng-click="sendMsg()">Hi,yi</button>
 </div>

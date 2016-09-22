@@ -23,7 +23,7 @@ var UserDb = function() {
 
 module.exports = UserDb;
 
-MsgDb.prototype.userDetail = function(uid, next) {
+UserDb.prototype.userDetail = function(uid, next) {
 	if (myTool.isEmptyString(uid)) {
 		var err = {
 			msg: 'lack of uid'
@@ -33,7 +33,7 @@ MsgDb.prototype.userDetail = function(uid, next) {
 	}
 
 	var sql = 'select * from user where uid=?';
-	connection.query(sql, [uid], function(error, rows){
+	connection.query(sql, [uid], function(error, rows) {
 		if (error) {
 			var err = {
 				msg: 'database error.'
@@ -44,7 +44,7 @@ MsgDb.prototype.userDetail = function(uid, next) {
 
 		if (rows.length > 0) {
 			var info = rows[0];
-			var newInfo;
+			var newInfo = {};
 			for (var key in info) {
 				var value = info[key];
 				if (value) {
@@ -53,7 +53,7 @@ MsgDb.prototype.userDetail = function(uid, next) {
 			}
 			delete newInfo['password'];
 			var result = {
-				msgInfo: newInfo
+				userInfo: newInfo
 			}
 			next(null, result);
 
@@ -71,7 +71,7 @@ UserDb.prototype.add = function(user, next) {
 	var required = ['username', 'password'];
 	var all = ['uid', 'username', 'nickname', 'password', 'createAt', 'token'];
 
-	if (!myTool.isValidParams(msg, required, all)) {
+	if (!myTool.isValidParams(user, required, all)) {
 		var err = {
 			msg: 'params error.'
 		}
@@ -82,9 +82,9 @@ UserDb.prototype.add = function(user, next) {
 	var uid = uuid.v4();
 	var keys = ['uid'];
 	var values = [uid];
-	for (var key in data) {
+	for (var key in user) {
 		keys.push(key);
-		values.push(data[key]);
+		values.push(user[key]);
 	}
 
 	var sql = 'insert into user(';
@@ -103,7 +103,47 @@ UserDb.prototype.add = function(user, next) {
 	sql = sql.substring(0, sql.length - 1);
 	sql += ")";
 
-	connection.query(sql, values, function(error, rows){
+	connection.query(sql, values, function(error, rows) {
+		if (error) {
+			var err = {
+				msg: 'database error.'
+			}
+			next(err);
+			return;
+		}
 
+		sql = 'select * from user where uid=?';
+		connection.query(sql, [uid], function(error, rows) {
+			if (error) {
+				var err = {
+					msg: 'database error.'
+				}
+				next(err);
+				return;
+			}
+
+			if (rows.length > 0) {
+				var info = rows[0];
+				var newInfo = {};
+				for (var key in info) {
+					var value = info[key];
+					if (value) {
+						newInfo[key] = value;
+					}
+				}
+				var result = {
+					msg: 'create user ok.',
+					userInfo: newInfo
+				}
+				next(null, result);
+
+			} else {
+				var err = {
+					msg: 'database error.'
+				}
+				next(err);
+
+			}
+		});
 	});
 }
