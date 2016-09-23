@@ -15,6 +15,7 @@ var SocketHandleController = function(socket) {
 	//listen socket events
 	this.onAuthentication();
 	this.onNewMsg();
+	this.onMsgReceived();
 	this.onDisconnect();
 }
 
@@ -66,19 +67,30 @@ SocketHandleController.prototype.emitAuthFailed = function(next) {
 SocketHandleController.prototype.emitNewMsg = function(msg, next) {
 	var socket = this.socket;
 
-	socket.emit('new-msg', msg);
+	socket.emit('newMsg', msg);
 }
 
 SocketHandleController.prototype.onNewMsg = function(next) {
 	var socket = this.socket;
-	var Msg = new MsgModule(socket);
+	var Msg = new MsgModule({socket: socket});
 
 	socket.on('newMsg', function(msg){
-		console.log(JSON.stringify(msg));
-		Msg.sendMsgBySocket(msg.msg, function(error){
+		Msg.sendMsgBySocket(msg, function(error){
 			if (error) {
-				console.log(error.msg);
+				console.log(error);
+				return;
 			}
+		});
+	});
+}
+
+SocketHandleController.prototype.onMsgReceived = function(next) {
+	var socket = this.socket;
+
+	var Msg = new MsgModule({socket: socket});
+	socket.on('msgReceived', function(msg){
+		Msg.msgReceived(msg, function(error, response){
+
 		});
 	});
 }

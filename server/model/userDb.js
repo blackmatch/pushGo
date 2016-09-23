@@ -147,3 +147,35 @@ UserDb.prototype.add = function(user, next) {
 		});
 	});
 }
+
+UserDb.prototype.getUsers = function(params, next) {
+	var sql = 'select * from user';
+	connection.query(sql, function(error, rows){
+		if (error) {
+			var err = {
+				msg: 'database error.'
+			}
+			next(err);
+			return;
+		}
+		// console.log(rows.length);
+		if (rows.length > 0) {
+			for (var i in rows) {
+				delete rows[i]['password'];
+			}
+
+			var result = {
+				msg: 'get all users ok.',
+				data: rows
+			}
+			next(null, result);
+
+		} else {
+			var result = {
+				msg: 'no users.',
+				data: []
+			}
+			next(null, result);
+		}
+	});
+}

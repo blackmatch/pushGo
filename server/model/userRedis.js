@@ -159,3 +159,53 @@ UserRedis.prototype.remove = function(sid, next) {
 		ep.emit('removeSid', response);
 	});
 }
+
+UserRedis.prototype.removeAll = function(next) {
+	var ep = new EventProxy();
+	ep.all('removeUid', 'removeSid', function(removeUid, removeSid) {
+		if (removeUid.status === 'OK' && removeSid.status === 'OK') {
+			var result = {
+				msg: 'remove all user from redis ok.'
+			}
+			next(null, result);
+			return;
+		}
+
+		var err = {
+			msg: 'remove all users from redis failed.'
+		}
+		next(err);
+
+	});
+
+	redisClient.del('UidToSid', function(error) {
+		if (error) {
+			var err = {
+				status: 'ERROR'
+			}
+			ep.emit('removeUid', err);
+			return;
+		}
+
+		var result = {
+			status: 'OK'
+		}
+		ep.emit('removeUid', result);
+
+	});
+
+	redisClient.del('SidToUid', function(error) {
+		if (error) {
+			var err = {
+				status: 'ERROR'
+			}
+			ep.emit('removeSid', err);
+			return;
+		}
+
+		var result = {
+			status: 'OK'
+		}
+		ep.emit('removeSid', result);
+	});
+}

@@ -1,7 +1,7 @@
 app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', function($scope, $http, socket, $cookies) {
 
 	$scope.data = {
-		events: [],
+		msgs: [],
 		users: []
 	}
 
@@ -58,14 +58,14 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 		socket.emit('eventReceived', data);
 	});
 
-	socket.on('newMsg', function(data) {
-		console.log('newMsg:' + data);
-		$scope.data.events.push(data);
-		// socket.emit('eventReceived', data);
+	socket.on('newMsg', function(msg) {
+		console.log(msg);
+		$scope.data.msgs.push(msg);
+		socket.emit('msgReceived', msg);
 	});
 
 	var getAllUsers = function(){
-		$http.get('http://localhost:3000/users').then(function(response){
+		$http.get('http://localhost:3000/user').then(function(response){
 			if (response.data.status === 'OK') {
 				$scope.data.users = response.data.data;
 			}
@@ -81,42 +81,10 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 		var msg = {
 			sender: uid,
 			receiver: user.uid,
-			content: 'hello,' + user.username,
-			uid: uid
+			content: {text: 'hello,' + user.username}
 		}
 
-		var params = {
-			uid: uid,
-			msg: msg
-		}
-
-		socket.emit('sendEventMsg', params);
-
-		// $http.post('http://localhost:3000/pushEvent', event).then(function(resp) {
-		// 	console.log(resp.data);
-
-		// }, function(error) {
-		// 	console.log(error);
-		// });
-	}
-
-	
-
-	$scope.sendMsg = function() {
-		console.log('44444');
-		var msg = {
-			sender: uid,
-			receiver: '513de81a-9c05-45e4-9dee-b5328377743e',
-			content: {text: 'hello, yi'},
-			uid: uid
-		}
-
-		var params = {
-			uid: uid,
-			msg: msg
-		}
-
-		socket.emit('newMsg', params);
+		socket.emit('newMsg', msg);
 	}
 
 }])

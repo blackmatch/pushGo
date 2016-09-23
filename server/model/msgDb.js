@@ -38,12 +38,17 @@ MsgDb.prototype.add = function(msg, next) {
 	var msgid = uuid.v4();
 	var keys = ['msgid'];
 	var values = [msgid];
-	for (var key in data) {
+	for (var key in msg) {
 		keys.push(key);
-		values.push(data[key]);
+		if (key === 'content') {
+			values.push(JSON.stringify(msg[key]));
+
+		} else {
+			values.push(msg[key]);
+		}
 	}
 
-	var sql = 'insert into event(';
+	var sql = 'insert into msg(';
 
 	for (var i in keys) {
 		sql += keys[i] + ',';
@@ -66,11 +71,10 @@ MsgDb.prototype.add = function(msg, next) {
 			}
 			next(err);
 			return;
-
 		}
 
-		sql = 'select * from event where msgid=?';
-		connection.query(sql, [eventid], function(error, rows) {
+		sql = 'select * from msg where msgid=?';
+		connection.query(sql, [msgid], function(error, rows) {
 			if (error) {
 				var err = {
 					msg: 'query inserted user failed.'
@@ -81,11 +85,16 @@ MsgDb.prototype.add = function(msg, next) {
 
 			if (rows.length > 0) {
 				var info = rows[0];
-				delete info['password'];
-				var result = {
-					userInfo: info
+				var newInfo = {};
+				
+				for (var key in info) {
+					var value = info[key];
+					if (value) {
+						newInfo[key] = value;
+					}
 				}
-				next(null, result);
+				
+				next(null, newInfo);
 
 			} else {
 				var err = {
@@ -95,8 +104,6 @@ MsgDb.prototype.add = function(msg, next) {
 			}
 
 		});
-
-
 	});
 }
 

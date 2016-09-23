@@ -40,7 +40,7 @@ MsgRedis.prototype.add = function(msg, next) {
 		}
 	});
 
-	ep1.after('addHash', msg.keys().length, function(statusList) {
+	ep1.after('addHash', Object.keys(msg).length, function(statusList) {
 		for (var i in statusList) {
 			var s = statusList[i];
 			if (s.status !== 'OK') {
@@ -61,8 +61,8 @@ MsgRedis.prototype.add = function(msg, next) {
 	});
 
 	for (var k in msg) {
-		if (!myTool.isEmptyString(data[k])) {
-			redisClient.hset(key, k, data[k], function(error, response) {
+		if (!myTool.isEmptyString(msg[k])) {
+			redisClient.hset(mKey, k, msg[k], function(error, response) {
 				if (error) {
 					var resp = {
 						status: 'ERROR',
@@ -160,5 +160,33 @@ MsgRedis.prototype.remove = function(msgid, next) {
 			msg: 'remove msg id from set ok.'
 		}
 		ep.emit('removeId', resp);
+	});
+}
+
+MsgRedis.prototype.msgList = function(next) {
+	redisClient.smembers('msgset', function(error, msgs) {
+		if (error) {
+			var err = {
+				msg: 'get msgs failed.'
+			}
+			next(err);
+			return;
+		}
+
+		next(null, msgs);
+	});
+}
+
+MsgRedis.prototype.msgDetail = function(msgid, next) {
+	redisClient.hgetall('msg:' + msgid, function(error, msg) {
+		if (error) {
+			var err = {
+				msg: 'get msg failed.'
+			}
+			next(err);
+			return;
+		}
+
+		next(null, msg);
 	});
 }

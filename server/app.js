@@ -21,12 +21,8 @@ server.listen(3000, function(req, res) {
 });
 
 /* ===================== custom modules begin ===================== */
-var SocketHandleModule = require('./modules/SocketHandleModule.js');
 var SocketModule = require('./modules/SocketModule.js');
 var Socket = new SocketModule(server);
-Socket.onConnected(function(socket){
-	var SocketHandle = new SocketHandleModule(socket);
-});
 
 var UserModule = require('./modules/UserModule.js');
 var User = new UserModule();
@@ -40,6 +36,25 @@ var UserDb = new UserDbModule();
 /* ===================== custom modules end ===================== */
 
 /* ===================== express api begin ===================== */
+app.get('/user', function(req, res){
+	UserDb.getUsers(null, function(error, response){
+		if (error) {
+			var err = {
+				status: 'ERROR',
+				msg: error.msg
+			}
+			res.send(err);
+			return;
+		}
+
+		var result = {
+			status: 'OK',
+			data: response.data
+		}
+		res.send(result);
+	});
+});
+
 app.post('/user/register', upload.array(), function(req, res) {
 	var userInfo = {
 		username: req.body.username,

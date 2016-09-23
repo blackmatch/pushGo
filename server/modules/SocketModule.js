@@ -1,37 +1,53 @@
 var socketio = require('socket.io');
 var SocketHandleModule = require('./SocketHandleModule.js');
+var EventProxy = require('eventproxy');
 
-var SocketController = function(server) {
+var UserRedisModule = require('../model/userRedis.js');
+var UserRedis = new UserRedisModule();
+
+var SocketModule = function(server) {
 	this.io = new socketio(server);
+	this.onConnected();
 }
 
-module.exports = SocketController;
+module.exports = SocketModule;
 
-SocketController.prototype.onConnected = function(next) {
+SocketModule.prototype.onConnected = function() {
 	var io = this.io;
 
-	io.on('connection', function(socket){
-		// next(socket);
-		console.log('client connected:' + socket.id);
-		console.log(JSON.stringify(io.sockets.adapter.rooms));
-		console.log('io sockets:' + io.sockets);
+	var ep = new EventProxy();
+	ep.after('remove', 1, function(data) {
+		io.on('connection', function(socket) {
+			var SocketHandle = new SocketHandleModule(socket);
+		});
+	});
+
+	UserRedis.removeAll(function(error, response) {
+		if (error) {
+			ep.emit('remove', {
+				msg: 'error'
+			});
+			return;
+		}
+
+		ep.emit('remove', {
+			msg: 'ok'
+		});
+	})
+}
+
+SocketModule.prototype.onDisconnected = function(next) {
+	var io = this.io;
+
+	io.on('disconnection', function(socket) {
 		next(socket);
-		// var SocketHandle = new SocketHandleModule();
 	});
 }
 
-SocketController.prototype.onDisconnected = function(next) {
+SocketModule.prototype.onReconnected = function(next) {
 	var io = this.io;
 
-	io.on('disconnection', function(socket){
-		next(socket);
-	});
-}
-
-SocketController.prototype.onReconnected = function(next) {
-	var io = this.io;
-
-	io.on('reconnection', function(socket){
+	io.on('reconnection', function(socket) {
 		next(socket);
 	});
 }

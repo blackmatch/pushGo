@@ -35,10 +35,9 @@ module.exports = UserModule;
 UserModule.prototype.isOnline = function(uid, next) {
 	var ep = new EventProxy();
 	ep.all('checkUid', 'checkSid', function(checkUid, checkSid) {
-		console.log(checkUid);
 		if (checkUid.error || checkSid.error) {
 			var err = {
-				msg: 'redis error or user if offline.'
+				msg: 'redis error or user is offline.'
 			}
 			next(err);
 
