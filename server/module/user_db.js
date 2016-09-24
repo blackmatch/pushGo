@@ -1,7 +1,7 @@
 var mysql = require('mysql');
 var uuid = require('node-uuid');
 var Config = require('../config.js');
-var Tool = require('../tool/myTool.js');
+var Tool = require('../utils/tool.js');
 var dateFormat = require('dateformat');
 
 var configModule = new Config();
@@ -23,7 +23,45 @@ var UserDb = function() {
 
 module.exports = UserDb;
 
-UserDb.prototype.userDetail = function(uid, callback) {
+UserDb.prototype.checkLogin = function (data, callback) {
+	if (myTool.isEmptyString(data.username) || myTool.isEmptyString(data.password)) {
+		var err = {
+			msg: 'lack of params.'
+		}
+		callback(err);
+		return;
+	}
+
+	var sql = 'select * from user where username=? and password=?';
+	connection.query(sql, [data.username, data.password], function(error, rows) {
+		if (error) {
+			var err = {
+				msg: 'database error.'
+			}
+			callback(err);
+			return;
+		}
+
+		if (rows.length > 0) {
+			var info = rows[0];
+			delete info['password'];
+
+			var result = {
+				userInfo: info
+			}
+			callback(null, result);
+
+		} else {
+			var err = {
+				msg: 'wrong username or password.'
+			}
+			callback(err);
+		}
+
+	});
+}
+
+UserDb.prototype.getDetail = function(uid, callback) {
 	if (myTool.isEmptyString(uid)) {
 		var err = {
 			msg: 'lack of uid'
@@ -59,7 +97,7 @@ UserDb.prototype.userDetail = function(uid, callback) {
 
 		} else {
 			var err = {
-				msg: 'invalid msgid.'
+				msg: 'invalid uid.'
 			}
 			callback(err);
 		}

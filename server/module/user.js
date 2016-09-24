@@ -21,25 +21,25 @@ var connection = mysql.createConnection({
 });
 connection.connect();
 
-var EncryptorModule = require('../tool/encryptor.js');
+var EncryptorModule = require('../utils/encryptor.js');
 var Encryptor = new EncryptorModule();
 var UserDbModule = require('../model/userDb.js');
 var UserDb = new UserDbModule();
 
-var UserModule = function() {
-
+var UserModule = function(io) {
+	this.io = io;
 }
 
 module.exports = UserModule;
 
-UserModule.prototype.isOnline = function(uid, next) {
+UserModule.prototype.isOnline = function(uid, callback) {
 	var ep = new EventProxy();
 	ep.all('checkUid', 'checkSid', function(checkUid, checkSid) {
 		if (checkUid.error || checkSid.error) {
 			var err = {
 				msg: 'redis error or user is offline.'
 			}
-			next(err);
+			callback(err);
 
 		} else {
 			var result = {
@@ -47,7 +47,7 @@ UserModule.prototype.isOnline = function(uid, next) {
 				sid: checkUid.sid
 			}
 
-			next(null, result);
+			callback(null, result);
 		}
 	});
 
@@ -103,12 +103,12 @@ UserModule.prototype.isOnline = function(uid, next) {
 	});
 }
 
-UserModule.prototype.login = function(data, next) {
+UserModule.prototype.login = function(data, callback) {
 	if (myTool.isEmptyString(data.username) || myTool.isEmptyString(data.password)) {
 		var err = {
 			msg: 'lack of params.'
 		}
-		next(err);
+		callback(err);
 		return;
 	}
 
@@ -118,7 +118,7 @@ UserModule.prototype.login = function(data, next) {
 			var err = {
 				msg: 'database error.'
 			}
-			next(err);
+			callback(err);
 			return;
 		}
 
@@ -129,24 +129,24 @@ UserModule.prototype.login = function(data, next) {
 			var result = {
 				userInfo: info
 			}
-			next(null, result);
+			callback(null, result);
 
 		} else {
 			var err = {
 				msg: 'wrong username or password.'
 			}
-			next(err);
+			callback(err);
 		}
 
 	});
 }
 
-UserModule.prototype.auth = function(data, next) {
+UserModule.prototype.auth = function(data, callback) {
 	if (myTool.isEmptyString(data.token)) {
 		var err = {
 			msg: 'lack of token'
 		}
-		next(err);
+		callback(err);
 		return;
 	}
 
@@ -155,7 +155,7 @@ UserModule.prototype.auth = function(data, next) {
 		var err = {
 			msg: 'decrypt token failed.'
 		}
-		next(err);
+		callback(err);
 		return;
 	}
 
@@ -164,7 +164,7 @@ UserModule.prototype.auth = function(data, next) {
 		var err = {
 			msg: 'get uid failed.'
 		}
-		next(err);
+		callback(err);
 		return;
 	}
 
@@ -173,7 +173,7 @@ UserModule.prototype.auth = function(data, next) {
 			var err = {
 				msg: error.msg
 			}
-			next(err);
+			callback(err);
 			return;
 		}
 
@@ -181,6 +181,6 @@ UserModule.prototype.auth = function(data, next) {
 			msg: 'user auth ok.',
 			userInfo: response.userInfo
 		}
-		next(null, result);
+		callback(null, result);
 	});
 }

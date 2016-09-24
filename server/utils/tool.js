@@ -1,14 +1,14 @@
-var MyTool = function() {
+var Tool = function() {
 
 }
 
-module.exports = MyTool;
+module.exports = Tool;
 
-MyTool.prototype.isEmptyString = function(str) {
+Tool.prototype.isEmptyString = function(str) {
 	return (!str || str.length === 0);
 }
 
-MyTool.prototype.isValidParams = function(params, requireKeys, allKeys) {
+Tool.prototype.isValidParams = function(params, requireKeys, allKeys) {
 	var isValid = true;
 
 	for (var i in requireKeys) {

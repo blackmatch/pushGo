@@ -21,65 +21,58 @@ server.listen(3000, function(req, res) {
 });
 
 /* ===================== custom modules begin ===================== */
-var SocketModule = require('./modules/SocketModule.js');
+var SocketModule = require('./module/socket.js');
 var Socket = new SocketModule(server);
 
-var UserModule = require('./modules/UserModule.js');
-var User = new UserModule();
-
-var ListenerModule = require('./modules/ListenerModule.js');
-var Listener = new ListenerModule();
-
-var UserDbModule = require('./model/userDb.js');
+var UserDbModule = require('./module/user_db.js');
 var UserDb = new UserDbModule();
-
 /* ===================== custom modules end ===================== */
 
 /* ===================== express api begin ===================== */
-app.get('/user', function(req, res){
-	UserDb.getUsers(null, function(error, response){
-		if (error) {
-			var err = {
-				status: 'ERROR',
-				msg: error.msg
-			}
-			res.send(err);
-			return;
-		}
+// app.get('/user', function(req, res){
+// 	UserDb.getUsers(null, function(error, response){
+// 		if (error) {
+// 			var err = {
+// 				status: 'ERROR',
+// 				msg: error.msg
+// 			}
+// 			res.send(err);
+// 			return;
+// 		}
 
-		var result = {
-			status: 'OK',
-			data: response.data
-		}
-		res.send(result);
-	});
-});
+// 		var result = {
+// 			status: 'OK',
+// 			data: response.data
+// 		}
+// 		res.send(result);
+// 	});
+// });
 
-app.post('/user/register', upload.array(), function(req, res) {
-	var userInfo = {
-		username: req.body.username,
-		password: req.body.password
-	}
+// app.post('/user/register', upload.array(), function(req, res) {
+// 	var userInfo = {
+// 		username: req.body.username,
+// 		password: req.body.password
+// 	}
 
-	UserDb.add(userInfo, function(error, response){
-		if (error) {
-			var result = {
-				status: 'ERROR',
-				msg: error.msg
-			}
-			res.send(result);
-			return;
-		}
+// 	UserDb.add(userInfo, function(error, response){
+// 		if (error) {
+// 			var result = {
+// 				status: 'ERROR',
+// 				msg: error.msg
+// 			}
+// 			res.send(result);
+// 			return;
+// 		}
 
-		var result = {
-			status: 'OK',
-			msg: 'register successfully.',
-			data: response.userInfo
-		}
-		res.send(result);
+// 		var result = {
+// 			status: 'OK',
+// 			msg: 'register successfully.',
+// 			data: response.userInfo
+// 		}
+// 		res.send(result);
 
-	});
-});
+// 	});
+// });
 
 app.post('/user/login', upload.array(), function(req, res) {
 
@@ -88,7 +81,7 @@ app.post('/user/login', upload.array(), function(req, res) {
 		password: req.body.password
 	}
 
-	User.login(userInfo, function(error, response) {
+	UserDb.checkLogin(userInfo, function(error, data) {
 		if (error) {
 			var result = {
 				status: 'ERROR',
@@ -101,15 +94,15 @@ app.post('/user/login', upload.array(), function(req, res) {
 		var result = {
 			status: 'OK',
 			msg: 'login successfully.',
-			data: response.userInfo
+			data: data.userInfo
 		}
 		res.send(result);
 	});
 
 });
 
-app.post('/msg/send', upload.array(), function(req, res) {
+// app.post('/msg/send', upload.array(), function(req, res) {
 
-});
+// });
 
 /* ===================== express api end ===================== */

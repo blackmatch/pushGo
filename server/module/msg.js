@@ -1,62 +1,39 @@
 var EventProxy = require('eventproxy');
-var tool = require('../tool/myTool.js');
+
+var tool = require('../utils/tool.js');
 var myTool = new tool();
 
-var UserModule = require('./UserModule.js');
-var User = new UserModule();
 
-var MsgDbModule = require('../model/msgDb.js');
-var MsgDb = new MsgDbModule();
-
-var MsgRedisModule = require('../model/msgRedis.js');
+var MsgRedisModule = require('./user_redis.js');
 var MsgRedis = new MsgRedisModule()
 
-var EventProxy = require('eventproxy');
 
-var MsgModule = function(socket) {
-	this.socket = socket;
+var MsgModule = function(io) {
+	this.io = io;
 }
 
 module.exports = MsgModule;
 
-MsgModule.prototype.sendMsgBySocket = function(msg, next) {
-	var socket = this.socket;
+MsgModule.prototype.sendMsgBySocket = function(msg, callback) {
+	var io = this.io;
 
-	var ep = new EventProxy();
-
-	MsgDb.add(msg, function(error, addedMsg) {
+	//check user online
+	User.isOnline(msg.receiver, function(error, data) {
 		if (error) {
-			next(error);
+			callback(error);
 			return;
 		}
 
-		//check user online
-		User.isOnline(msg.receiver, function(error, response) {
-			if (error) {
-				next(error);
-				//user is offline
-				MsgRedis.add(addedMsg, function(error, response) {
-					if (error) {
-						console.log(error);
-						return;
-					}
-				});
-				return;
-			}
-
-			console.log(666);
-			var sid = response.sid;
-			addedMsg.content = JSON.parse(addedMsg.content);
-			socket.to(sid).emit('newMsg', addedMsg);
-			var result = {
-				msg: 'msg has been sent.'
-			}
-			next(null, result);
-		});
+		var sid = data.sid;
+		io.to(sid).emit('newMsg', msg);
+		var result = {
+			msg: 'msg has been sent.'
+		}
+		callback(null, result);
 	});
 }
 
-MsgModule.prototype.msgReceived = function(msg, next) {
+MsgModule.prototype.msgReceived = function(msg, callback) {
 	MsgDb.updateStatus(msg.msgid, 1, function(error, response) {
 		if (error) {
 			console.log(error);

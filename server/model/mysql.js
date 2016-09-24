@@ -153,7 +153,7 @@ exports.updateEvent = function(eventid, data, callback) {
 	});
 }
 
-exports.addUser = function(data, next) {
+exports.addUser = function(data, callback) {
 	var uid = uuid.v4();
 	var sql = 'insert into user(uid,username,password) values(?,?,?)';
 
@@ -167,14 +167,14 @@ exports.addUser = function(data, next) {
 		}
 
 		if (error) {
-			next(errorResp);
+			callback(errorResp);
 			return;
 		}
 
 		sql = "select * from user where uid='" + uid + "'";
 		connection.query(sql, function(error, rows) {
 			if (error) {
-				next(errorResp);
+				callback(errorResp);
 				return;
 			}
 
@@ -184,20 +184,20 @@ exports.addUser = function(data, next) {
 				data: info
 			}
 
-			next(succeedResp);
+			callback(succeedResp);
 
 		});
 
 	});
 }
 
-exports.userLogin = function(data, next) {
+exports.userLogin = function(data, callback) {
 	if (!data.username || !data.password) {
 		var errorRes = {
 			status: 'ERROR',
 			msg: 'lack of params.'
 		}
-		next(errorRes);
+		callback(errorRes);
 		return;
 	}
 
@@ -208,7 +208,7 @@ exports.userLogin = function(data, next) {
 				status: 'ERROR',
 				msg: 'data base error.'
 			}
-			next(errorRes);
+			callback(errorRes);
 			return;
 		}
 
@@ -217,25 +217,25 @@ exports.userLogin = function(data, next) {
 				status: 'ERROR',
 				msg: 'user name or password error.'
 			}
-			next(errorRes);
+			callback(errorRes);
 
 		} else {
 			var succeedRes = {
 				status: 'OK',
 				data: rows[0]
 			}
-			next(succeedRes);
+			callback(succeedRes);
 		}
 	});
 }
 
-exports.checkUser = function(data, next) {
+exports.checkUser = function(data, callback) {
 	if (!data.uid) {
 		var errorRes = {
 			status: 'ERROR',
 			msg: 'lack of params.'
 		}
-		next(errorRes);
+		callback(errorRes);
 		return;
 	}
 
@@ -246,7 +246,7 @@ exports.checkUser = function(data, next) {
 				status: 'ERROR',
 				msg: 'data base error.'
 			}
-			next(errorRes);
+			callback(errorRes);
 			return;
 		}
 
@@ -255,37 +255,37 @@ exports.checkUser = function(data, next) {
 				status: 'ERROR',
 				msg: 'user not exists.'
 			}
-			next(errorRes);
+			callback(errorRes);
 
 		} else {
 			var succeedRes = {
 				status: 'OK',
 				data: rows[0]
 			}
-			next(succeedRes);
+			callback(succeedRes);
 		}
 	});
 }
 
-exports.getFailedEvents = function(receiver, next) {
+exports.getFailedEvents = function(receiver, callback) {
 	if (receiver) {
 		var sql = 'select * from event where receiver=? and status=2';
 		connection.query(sql, [receiver], function(err, rows) {
 			if (err) {
-				next();
+				callback();
 				return;
 			}
 
-			next(rows);
+			callback(rows);
 
 		});
 
 	} else {
-		next();
+		callback();
 	}
 }
 
-exports.updateEventStatus = function(eventid, status, next) {
+exports.updateEventStatus = function(eventid, status, callback) {
 
 	var sql = 'update event set status=';
 	var now = new Date();
@@ -327,7 +327,7 @@ exports.updateEventStatus = function(eventid, status, next) {
 	}
 }
 
-exports.addUserToken = function(data, next) {
+exports.addUserToken = function(data, callback) {
 	var errorResponse = {
 		status: 'ERROR',
 		msg: 'add token failed.'
@@ -339,22 +339,22 @@ exports.addUserToken = function(data, next) {
 	}
 
 	if (!data || !data.token || !data.uid) {
-		next(errorResponse);
+		callback(errorResponse);
 		return;
 	}
 
 	var sql = 'update user set token=? where uid=?';
 	connection.query(sql, [data.token, data.uid], function(err, rows) {
 		if (err) {
-			next(errorResponse);
+			callback(errorResponse);
 			return;
 		}
 
-		next(successResponse);
+		callback(successResponse);
 	});
 }
 
-exports.validateUserToken = function(data, next) {
+exports.validateUserToken = function(data, callback) {
 	var errorResponse = {
 		status: 'ERROR',
 		msg: 'check token failed.'
@@ -366,7 +366,7 @@ exports.validateUserToken = function(data, next) {
 	}
 
 	if (!data || !data.token || !data.uid) {
-		next(errorResponse);
+		callback(errorResponse);
 		return;
 	}
 
@@ -374,7 +374,7 @@ exports.validateUserToken = function(data, next) {
 	connection.query(sql, [data.uid], function(err, rows) {
 		if (err) {
 			console.log(err);
-			next(errorResponse);
+			callback(errorResponse);
 			return;
 		}
 
@@ -383,16 +383,16 @@ exports.validateUserToken = function(data, next) {
 		var uid = dec.split('+')[0];
 
 		if (uid === data.uid) {
-			next(successResponse);
+			callback(successResponse);
 
 		} else {
-			next(errorResponse);
+			callback(errorResponse);
 		}
 		
 	});
 }
 
-exports.getAllUsers = function(uid, next) {
+exports.getAllUsers = function(uid, callback) {
 	var sql = 'select uid,username from user';
 
 	connection.query(sql, function(err, rows){
@@ -402,7 +402,7 @@ exports.getAllUsers = function(uid, next) {
 				status: 'ERROR',
 				msg: 'database error.'
 			}
-			next(response);
+			callback(response);
 			return;
 		}
 
@@ -411,6 +411,6 @@ exports.getAllUsers = function(uid, next) {
 			data: rows
 		}
 
-		next(response);
+		callback(response);
 	});
 }

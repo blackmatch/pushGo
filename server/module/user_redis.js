@@ -1,19 +1,90 @@
 var redis = require('redis');
 var redisClient = redis.createClient();
-redisClient.on('error', function(err) {
-	console.log('connect to redis failed:' + err);
+redisClient.on('error', function(error) {
+	console.log('connect to redis failed:' + error);
 });
 
-var tool = require('../tool/myTool.js');
-var myTool = new tool();
-
 var EventProxy = require('eventproxy');
+
+var tool = require('../utils/tool.js');
+var myTool = new tool();
 
 var UserRedis = function() {
 
 }
 
 module.exports = UserRedis;
+
+UserRedis.prototype.isOnline = function(uid, callback) {
+	var ep = new EventProxy();
+	ep.all('checkUid', 'checkSid', function(checkUid, checkSid) {
+		if (checkUid.error || checkSid.error) {
+			var err = {
+				msg: 'redis error or user is offline.'
+			}
+			callback(err);
+
+		} else {
+			var result = {
+				msg: 'user is online.',
+				sid: checkUid.sid
+			}
+
+			callback(null, result);
+		}
+	});
+
+	redisClient.hget('UidToSid', uid, function(error, sid) {
+		if (error) {
+			var result = {
+				error: 'redis error.'
+			}
+			ep.emit('checkUid', result);
+			ep.emit('checkSid', result);
+			return;
+		}
+
+		if (myTool.isEmptyString(sid)) {
+			var result = {
+				error: 'uid is empty.'
+			}
+			ep.emit('checkUid', result);
+			ep.emit('checkSid', result);
+
+		} else {
+			var result = {
+				sid: sid,
+				msg: 'user is online.'
+			}
+			ep.emit('checkUid', result);
+
+			redisClient.hget('SidToUid', sid, function(error, uid) {
+				if (error) {
+					var result = {
+						error: 'redis error.'
+					}
+					ep.emit('checkSid', result);
+					return;
+				}
+
+				if (myTool.isEmptyString(uid)) {
+					var result = {
+						error: 'sid is empty.'
+					}
+					ep.emit('checkSid', result);
+
+				} else {
+					var result = {
+						uid: uid,
+						msg: 'user is online.'
+					}
+					ep.emit('checkSid', result);
+				}
+			});
+		}
+
+	});
+}
 
 UserRedis.prototype.add = function(uid, sid, callback) {
 	if (myTool.isEmptyString(uid) || myTool.isEmptyString(sid)) {
@@ -25,8 +96,8 @@ UserRedis.prototype.add = function(uid, sid, callback) {
 	}
 
 	var ep = new EventProxy();
-	ep.all('uidAdded', 'sidAdded', function(uidResp, sidResp) {
-		if (uidResp.status === 'OK' && sidResp.status === 'OK') {
+	ep.all('uidAdded', 'sidAdded', function(uidAdded, sidAdded) {
+		if (uidAdded.status === 'OK' && sidAdded.status === 'OK') {
 			var result = {
 				msg: 'add user to redis ok.'
 			}
@@ -44,12 +115,12 @@ UserRedis.prototype.add = function(uid, sid, callback) {
 
 	redisClient.hset('UidToSid', uid, sid, function(error, response) {
 		if (error) {
+			console.log(error);
 			var resp = {
 				status: 'ERROR',
 				msg: 'add uid to redis failed.'
 			}
 			ep.emit('uidAdded', resp);
-
 			return;
 		}
 
@@ -62,6 +133,7 @@ UserRedis.prototype.add = function(uid, sid, callback) {
 
 	redisClient.hset('SidToUid', sid, uid, function(error, response) {
 		if (error) {
+			console.log(error);
 			var resp = {
 				status: 'ERROR',
 				msg: 'add sid to redis failed.'

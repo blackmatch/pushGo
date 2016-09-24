@@ -117,25 +117,25 @@ exports.removeEvent = function(eventid) {
 	redisClient.srem('eventset', eventid);
 }
 
-exports.getEventList = function(next) {
+exports.getEventList = function(callback) {
 	redisClient.smembers('eventset',function(err,data){
 		if (err) {
-			next();
+			callback();
 			return;
 		}
 
-		next(data);
+		callback(data);
 	});
 }
 
-exports.getEventDetail = function(eventid, next) {
+exports.getEventDetail = function(eventid, callback) {
 	redisClient.hgetall('event:' + eventid, function(err, data){
 		if (err) {
-			next();
+			callback();
 			return;
 		}
 
-		next(data);
+		callback(data);
 	})
 }
 

@@ -4,7 +4,7 @@ redisClient.on('error', function(err) {
 	console.log('connect to redis failed:' + err);
 });
 
-var tool = require('../tool/myTool.js');
+var tool = require('../utils/tool.js');
 var myTool = new tool();
 
 var EventProxy = require('eventproxy');
@@ -163,21 +163,21 @@ MsgRedis.prototype.remove = function(msgid, callback) {
 	});
 }
 
-MsgRedis.prototype.msgList = function(callback) {
-	redisClient.smembers('msgset', function(error, msgs) {
+MsgRedis.prototype.getIds = function(callback) {
+	redisClient.smembers('msgset', function(error, Ids) {
 		if (error) {
 			var err = {
-				msg: 'get msgs failed.'
+				msg: 'get Ids failed.'
 			}
-			callback(err);
+			callback(Ids);
 			return;
 		}
 
-		callback(null, msgs);
+		callback(null, Ids);
 	});
 }
 
-MsgRedis.prototype.msgDetail = function(msgid, callback) {
+MsgRedis.prototype.getDetail = function(msgid, callback) {
 	redisClient.hgetall('msg:' + msgid, function(error, msg) {
 		if (error) {
 			var err = {

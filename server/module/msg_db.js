@@ -1,7 +1,7 @@
 var mysql = require('mysql');
 var uuid = require('node-uuid');
 var Config = require('../config.js');
-var Tool = require('../tool/myTool.js');
+var Tool = require('../utils/tool.js');
 var dateFormat = require('dateformat');
 
 var configModule = new Config();
