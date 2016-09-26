@@ -34,7 +34,7 @@ var SocketHandleController = function(socket) {
 	//listen socket events
 	this.onAuthentication();
 	// this.onNewMsg();
-	// this.onMsgReceived();
+	this.onMsgReceived();
 	this.onDisconnect();
 }
 
@@ -64,7 +64,20 @@ SocketHandleController.prototype.onAuthentication = function(callback) {
 
 				console.log('add user to redis ok.');
 				self.onNewMsg();
-			})
+			});
+
+			MsgDb.getNeedToSendMsgs(uid, function(error, msgs){
+				if (error) {
+					console.log(error);
+					return;
+				}
+
+				for (var i = 0; i < msgs.length; i++) {
+					var msg = msgs[i];
+					socket.emit('newMsg', msg);
+				}
+			});
+
 		});
 	});
 }
@@ -120,13 +133,22 @@ SocketHandleController.prototype.onNewMsg = function() {
 	});
 }
 
-SocketHandleController.prototype.onMsgReceived = function(callback) {
+SocketHandleController.prototype.onMsgReceived = function() {
 	var socket = this.socket;
 
-	var Msg = new MsgModule({socket: socket});
-	socket.on('msgReceived', function(msg){
-		Msg.msgReceived(msg, function(error, response){
+	socket.on('msgReceived', function (msg) {
+		MsgDb.updateStatus(msg.msgid, 1, function (error, data) {
+			if (error) {
+				console.log(error);
+				return;
+			}
 
+			MsgRedis.remove(msg.msgid, function (error, data) {
+				if (error) {
+					console.log(error);
+					return;
+				}
+			});
 		});
 	});
 }

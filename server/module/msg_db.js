@@ -86,14 +86,14 @@ MsgDb.prototype.add = function(msg, callback) {
 			if (rows.length > 0) {
 				var info = rows[0];
 				var newInfo = {};
-				
+
 				for (var key in info) {
 					var value = info[key];
 					if (value) {
 						newInfo[key] = value;
 					}
 				}
-				
+
 				callback(null, newInfo);
 
 			} else {
@@ -117,7 +117,7 @@ MsgDb.prototype.msgDetail = function(msgid, callback) {
 	}
 
 	var sql = 'select * from msg where msgid=?';
-	connection.query(sql, [msgid], function(error, rows){
+	connection.query(sql, [msgid], function(error, rows) {
 		if (error) {
 			var err = {
 				msg: 'database error.'
@@ -154,7 +154,7 @@ MsgDb.prototype.msgDetail = function(msgid, callback) {
 MsgDb.prototype.updateStatus = function(msgid, status, callback) {
 	var self = this;
 
-	var allStatus = [1,2,3];
+	var allStatus = [1, 2, 3];
 	if (myTool.isEmptyString(msgid) || allStatus.indexOf(status) === -1) {
 		var err = {
 			msg: 'params error.'
@@ -188,7 +188,7 @@ MsgDb.prototype.updateStatus = function(msgid, status, callback) {
 			}
 	}
 
-	connection.query(sql, values, function(error, rows){
+	connection.query(sql, values, function(error, rows) {
 		if (error) {
 			var err = {
 				msg: 'database error.'
@@ -197,7 +197,7 @@ MsgDb.prototype.updateStatus = function(msgid, status, callback) {
 			return;
 		}
 
-		self.msgDetail(msgid, function(error, response){
+		self.msgDetail(msgid, function(error, response) {
 			if (error) {
 				var err = {
 					msg: 'query msg detail failed.'
@@ -209,5 +209,42 @@ MsgDb.prototype.updateStatus = function(msgid, status, callback) {
 			callback(null, response);
 		});
 
+	});
+}
+
+MsgDb.prototype.getNeedToSendMsgs = function(uid, callback) {
+	var sql = 'select * from msg where receiver=? and (status=2 or (status=0 and (timestampadd(day, 1, createAt) < now())))';
+
+	connection.query(sql, [uid], function(error, rows) {
+		if (error) {
+			var err = {
+				msg: 'database error'
+			}
+			callback(err);
+			return;
+		}
+
+		if (rows.length > 0) {
+			var msgs = [];
+			for (var i = 0; i < rows.length; i++) {
+				var info = rows[i];
+				var newInfo = {};
+				for (var key in info) {
+					var value = info[key];
+					if (value) {
+						newInfo[key] = value;
+					}
+				}
+				newInfo.content = JSON.parse(newInfo.content);
+				msgs.push(newInfo);
+			}
+			callback(null, msgs);
+
+		} else {
+			var err = {
+				msg: 'no msg.'
+			}
+			callback(err);
+		}
 	});
 }

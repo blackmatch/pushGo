@@ -29,24 +29,24 @@ var UserDb = new UserDbModule();
 /* ===================== custom modules end ===================== */
 
 /* ===================== express api begin ===================== */
-// app.get('/user', function(req, res){
-// 	UserDb.getUsers(null, function(error, response){
-// 		if (error) {
-// 			var err = {
-// 				status: 'ERROR',
-// 				msg: error.msg
-// 			}
-// 			res.send(err);
-// 			return;
-// 		}
+app.get('/user', function(req, res){
+	UserDb.getUsers(null, function(error, response){
+		if (error) {
+			var err = {
+				status: 'ERROR',
+				msg: error.msg
+			}
+			res.send(err);
+			return;
+		}
 
-// 		var result = {
-// 			status: 'OK',
-// 			data: response.data
-// 		}
-// 		res.send(result);
-// 	});
-// });
+		var result = {
+			status: 'OK',
+			data: response.data
+		}
+		res.send(result);
+	});
+});
 
 // app.post('/user/register', upload.array(), function(req, res) {
 // 	var userInfo = {

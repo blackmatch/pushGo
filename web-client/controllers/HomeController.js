@@ -63,7 +63,7 @@ app.controller('HomeController', ['$scope', '$http', 'socket', '$cookies', funct
 	socket.on('newMsg', function(msg) {
 		console.log(msg);
 		// $scope.data.msgs.push(msg);
-		// socket.emit('msgReceived', msg);
+		socket.emit('msgReceived', msg);
 	});
 
 	// var getAllUsers = function(){
