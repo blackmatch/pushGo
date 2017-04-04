@@ -24,7 +24,7 @@ var MsgDb = function() {
 module.exports = MsgDb;
 
 MsgDb.prototype.add = function(msg, callback) {
-	var required = ['sender', 'receiver', 'content'];
+	var required = ['receiver', 'content'];
 	var all = ['msgid', 'type', 'sender', 'receiver', 'content', 'createAt', 'senderDevice', 'receiverDevice', 'channel', 'receiverAt', 'readAt', 'status'];
 
 	if (!myTool.isValidParams(msg, required, all)) {

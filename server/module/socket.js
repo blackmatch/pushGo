@@ -2,15 +2,15 @@ var SocketIO = require('socket.io');
 var EventProxy = require('eventproxy');
 
 //customs
-// var UserModule = require('./user.js');
-// var MsgModule = require('msg.js');
 var SocketHandlerModule = require('./socket_handler.js');
 var ListenerModule = require('./listener.js');
 
 var UserRedisModule = require('./user_redis.js');
 var UserRedis = new UserRedisModule();
 
-var SocketModule = function(server) {
+var APIModule = require('./api.js');
+
+var SocketModule = function(server, app) {
 	var self = this;
 
 	var ep = new EventProxy();
@@ -19,9 +19,8 @@ var SocketModule = function(server) {
 		self.onConnected();
 
 		//init other modules
-		// var User = new UserModule(this.io);
-		// var Msg = new MsgModule(this.io);
 		var Listener = new ListenerModule(self.io);
+		var API = new APIModule(self.io, app);
 	});
 
 

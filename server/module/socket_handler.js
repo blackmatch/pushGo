@@ -4,14 +4,6 @@ var myTool = new tool();
 var EncryptorModule = require('../utils/encryptor.js');
 var Encryptor = new EncryptorModule();
 
-// var UserModule = require('./UserModule.js');
-// var User = new UserModule();
-
-// var UserRedisModule = require('../model/userRedis.js');
-// var UserRedis = new UserRedisModule();
-
-// var MsgModule = require('./MsgModule.js');
-
 var UserRedisModule = require('./user_redis.js');
 var UserRedis = new UserRedisModule();
 
@@ -24,16 +16,12 @@ var UserDb = new UserDbModule();
 var MsgDbModule = require('./msg_db.js');
 var MsgDb = new MsgDbModule();
 
-
-
 var SocketHandleController = function(socket) {
-
 	console.log('client connected:' + socket.id);
 	this.socket = socket;
 
 	//listen socket events
 	this.onAuthentication();
-	// this.onNewMsg();
 	this.onMsgReceived();
 	this.onDisconnect();
 }

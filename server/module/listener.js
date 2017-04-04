@@ -1,4 +1,5 @@
 var CronJob = require('cron').CronJob;
+var dateFormat = require('dateformat');
 
 var ListenerModule = function(io) {
 	this.io = io;
@@ -13,7 +14,9 @@ ListenerModule.prototype.listenRedisMsg = function() {
 	var job = new CronJob({
 		cronTime: '*/10 * * * * *',
 		onTick: function() {
-			console.log('listening redis msg.    ' + new Date());
+			var now = new Date();
+			now = dateFormat(now, "yyyy-mm-dd HH:MM:ss");
+			console.log('listening redis msg.    ' + now);
 			handleRedisMsgs(io);
 		},
 		start: false,
@@ -62,22 +65,18 @@ var trySendMsg = function(msg, io) {
 	var dis = now_ts - create_ts;
 	dis = dis / 1000;
 
-	console.log('dis:' + dis);
 	//one day
 	if (dis > 86400 * 1) {
 		MsgRedis.remove(msg.msgid, function(error, data) {
 			if (error) {
-				console.log(error);
+				// TODO
 				return;
 			}
 
-			console.log('remove msg from redis ok.');
 			MsgDb.updateStatus(msg.msgid, 2, function(error, data) {
 				if (error) {
-					console.log(error);
+					// TODO
 					return;
-
-					console.log('update msg status to 2 ok.');
 				}
 			});
 		});
@@ -85,12 +84,11 @@ var trySendMsg = function(msg, io) {
 	} else {
 		UserRedis.isOnline(msg.receiver, function(error, data) {
 			if (error) {
-				console.log(error);
+				// TODO
 				return;
 			}
 
 			var sid = data.sid;
-			console.log('sid:' + sid);
 			msg.content = JSON.parse(msg.content);
 			io.to(sid).emit('newMsg', msg);
 		});

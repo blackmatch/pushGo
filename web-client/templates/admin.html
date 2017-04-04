@@ -1,3 +1,7 @@
 <div>
-	<button ng-click="push()">push</button>
+	<ul>
+		<li ng-repeat="user in data.users" ng-click="sendMsgTo(user)" style="cursor: pointer;">
+			<p ng-bind="user.username"></p>
+		</li>
+	</ul>
 </div>

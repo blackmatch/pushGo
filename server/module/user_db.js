@@ -8,6 +8,9 @@ var configModule = new Config();
 var mysqlConfig = configModule.mysql;
 var myTool = new Tool();
 
+var EncryptorModule = require('../utils/encryptor.js');
+var Encryptor = new EncryptorModule();
+
 var connection = mysql.createConnection({
 	host: mysqlConfig.host,
 	user: mysqlConfig.username,
@@ -49,6 +52,13 @@ UserDb.prototype.checkLogin = function (data, callback) {
 			var result = {
 				userInfo: info
 			}
+
+			//generate a token on every login
+			var now = (new Date()).getTime();
+			var token = Encryptor.rsaEncrypt(info.uid + '+' + now);
+			connection.query('update user set token=? where uid=?', [token,info.uid], function(error, rows){
+
+			});
 			callback(null, result);
 
 		} else {
